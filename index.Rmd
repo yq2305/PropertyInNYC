@@ -1,6 +1,6 @@
 --- 
-title: "YOUR TITLE HERE"
-author: "YOUR NAMES HERE"
+title: "Business around Columbia Campus"
+author: "Guotian Zhu, Yuxin Qian, Zhiheng Jiang, Jiayi Pan"
 date: "`r Sys.Date()`"
 site: bookdown::bookdown_site
 ---
