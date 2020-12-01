@@ -1,0 +1,336 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+#load in package 
+```{r}
+library(dplyr)
+library(tidyverse)
+library(ggplot2)
+library(GGally)
+library(tidyverse)
+library(reshape)
+library(devtools)
+library(tigris)
+library(leaflet)
+library(sp)
+library(ggmap)
+library(maptools)
+library(broom)
+library(httr)
+library(rgdal)
+library(ggpubr)
+library(readxl)
+```
+#read in data and preprocess 
+```{r}
+preprocess = function(dat){
+  dat = dat%>%
+  select(-c(`EASE-MENT`, `ADDRESS`,`APARTMENT NUMBER`,BLOCK,LOT))%>%
+  mutate(BOROUGH = as.factor(BOROUGH))%>%
+  mutate(NEIGHBORHOOD = as.factor(NEIGHBORHOOD))%>%
+  mutate(`BUILDING CLASS CATEGORY` = as.factor(`BUILDING CLASS CATEGORY`))%>%
+  mutate(`SALE DATE` = as.Date(`SALE DATE`, format = '%Y-%M-%d'))%>%
+  mutate(`SALE MONTH` = format(`SALE DATE`, "%Y-%m"))%>%
+  mutate(`TAX CLASS AT PRESENT` = as.character(`TAX CLASS AT PRESENT`))%>%
+  mutate(`BUILDING CLASS AT PRESENT` = as.character(`BUILDING CLASS AT PRESENT`))%>%
+  mutate(`TAX CLASS AT TIME OF SALE` = as.character(`TAX CLASS AT TIME OF SALE`))%>%
+  mutate(`BUILDING CLASS AT TIME OF SALE` = as.character(`BUILDING CLASS AT TIME OF SALE`))%>%
+  drop_na()
+  return(dat)
+}
+
+dat = bind_rows(
+  preprocess(read_xlsx('~/desktop/rollingsales_manhattan.xlsx')),
+  preprocess(read_xlsx('~/desktop/rollingsales_queens.xlsx')),
+  preprocess(read_xlsx('~/desktop/rollingsales_bronx.xlsx')),
+  preprocess(read_xlsx('~/desktop/rollingsales_brooklyn.xlsx')),
+  preprocess(read_xlsx('~/desktop/rollingsales_statenisland.xlsx'))
+  )%>%
+  mutate(BOROUGH = factor(BOROUGH)%>%fct_recode('Manhattan' = '1','Brooklyn' = '3', 'Queens' = '4', 'Bronx' = '2', 'Staten' = '5' ))%>%
+  mutate(tax_class_change = ifelse(`TAX CLASS AT TIME OF SALE` == `TAX CLASS AT PRESENT`, 0, 1))%>%
+  mutate(building_class_change = ifelse(`BUILDING CLASS AT TIME OF SALE` == `BUILDING CLASS AT PRESENT`, 0,1))
+
+sapply(dat,class)
+```
+
+#figure 1 & 2
+```{r}
+#how many sales by borough?
+sale_by_borough = ggplot(data = dat, aes(x=fct_rev(fct_infreq(BOROUGH))))+
+  geom_bar(fill = 'lightskyblue3')+
+  ggtitle('Sales count by borough')+
+  xlab('Borough')+ylab('Sales count')+
+  coord_flip()+
+  theme_classic()
+
+price_by_borough = dat%>%
+  select(BOROUGH, `SALE PRICE`)%>%
+  group_by(BOROUGH)%>%
+  summarise(avg = mean(`SALE PRICE`))%>%
+  ggplot(aes(x = reorder(BOROUGH,avg), y = avg))+
+  geom_col(fill = 'lightskyblue3')+
+  xlab('Borough') + ylab('Sales price')+
+  ggtitle('Average sales price by borough')+
+  coord_flip()+
+  theme_classic()
+ggarrange(sale_by_borough, price_by_borough, ncol = 2)
+fig1 = ggarrange(sale_by_day, sale_by_borough, price_by_day, price_by_borough, nrow = 2, ncol = 2)
+fig1
+
+
+#time series 
+# how many sales each day?
+sale_by_day = dat%>%
+  select(BOROUGH, `SALE DATE`)%>%
+  group_by(BOROUGH, `SALE DATE`)%>%
+  summarise(count = n())%>%
+  ggplot(aes(x = `SALE DATE`, y = count, group = BOROUGH, color = BOROUGH))+
+  geom_line()+
+  xlab('Date') + ylab('Sales Count')+
+  ggtitle('Sales count by day')+
+  theme_classic()+
+  theme(legend.position = 'top')
+  
+price_by_day = dat%>%
+  select(BOROUGH, `SALE DATE`,`SALE PRICE`)%>%
+  group_by(BOROUGH, `SALE DATE`)%>%
+  summarise(avg = mean(`SALE PRICE`))%>%
+  ggplot(aes(x = `SALE DATE`, y = avg, group = BOROUGH, color = BOROUGH))+
+  geom_line()+
+  xlab('Date') + ylab('Sales price')+
+  ggtitle('Sales price by day')+
+  theme_classic()+
+  theme(legend.position = 'bottom')
+
+fig2 = ggarrange(sale_by_day, price_by_day, common.legend = TRUE, ncol = 2)
+```
+
+
+#figure 3 
+```{r}
+try = dat%>%select(BOROUGH, NEIGHBORHOOD,`SALE PRICE`)%>%
+  group_by(BOROUGH, NEIGHBORHOOD)%>%
+  summarise(avg = mean(`SALE PRICE`))%>%
+  left_join(dat%>%select(NEIGHBORHOOD)%>%
+  group_by(NEIGHBORHOOD)%>%
+  summarise(count = n()) )
+
+most_expensive = try[order(-try$avg),]%>%
+  head(50)%>%
+  ggplot(aes(y = reorder(NEIGHBORHOOD,avg), x = avg, color = BOROUGH))+
+  geom_point()+
+  xlab('Average Sale Price')+
+  ylab('Neighborhood')+
+  ggtitle('Top 50 most expensive neighborhood')+labs(color = 'Borough')+
+  theme_classic()
+
+most_popular = try[order(-try$count),]%>%
+  head(50)%>%
+  ggplot(aes(y = reorder(NEIGHBORHOOD,count), x = count, color = BOROUGH))+
+  geom_point()+
+  xlab('Sales Count')+
+  ylab('Neighborhood')+
+  ggtitle('Top 50 most popular neighborhood')+labs(color = 'Borough')+
+  theme_classic()
+
+#most_expensive = dat%>%select(BOROUGH, NEIGHBORHOOD,`SALE PRICE`)%>%
+  #group_by(NEIGHBORHOOD)%>%
+  #summarise(avg = mean(`SALE PRICE`))%>%
+  #slice_max(avg, n= 50)%>%
+  #ggplot(aes(y = reorder(NEIGHBORHOOD,avg), x = avg))+
+  #geom_point(color = 'blue')+
+  #xlab('Average Sale Price')+
+  #ylab('Neighborhood')+
+  #ggtitle('Top 50 most expensive neighborhood')+
+  #theme_classic()
+
+#maybe also what's the most popular neighborhoodsd?
+#most_popular = dat%>%select(NEIGHBORHOOD)%>%
+  #group_by(NEIGHBORHOOD)%>%
+  #summarise(count = n())%>%
+  #slice_max(count, n= 50)%>%
+  #ggplot(aes(y = reorder(NEIGHBORHOOD,count), x = count))+
+  #geom_point(color = 'blue')+
+  #xlab('Sales count')+
+  #ylab('Neighborhood')+
+  #ggtitle('Top 50 most popular neighborhood')+
+  #theme_classic()
+
+ggarrange(most_popular,most_expensive,  ncol = 2, common.legend = TRUE)
+```
+
+#figure 4 
+```{r}
+dat%>%select(BOROUGH, `BUILDING CLASS CATEGORY`,`SALE PRICE`)%>%
+  group_by(BOROUGH, `BUILDING CLASS CATEGORY`)%>%
+  summarise(avg = mean(`SALE PRICE`))%>%
+  ggplot(aes(y = fct_rev(as.factor(as.character(`BUILDING CLASS CATEGORY`))), x = avg))+
+  geom_point(color = 'blue')+
+  facet_wrap(~BOROUGH)+
+  xlab('Average Sale Price')+
+  ylab('Building category')+theme_bw()
+
+unique(dat$`BUILDING CLASS CATEGORY`)
+```
+
+#figure 5
+```{r}
+#does price has anything to do with wether tax calss change?
+#how many properties involve tax change problem?
+tax_change = as.data.frame(table(dat$tax_class_change))%>%mutate(type = 'Tax class')%>%
+  bind_rows(as.data.frame(table(dat$building_class_change))%>%mutate(type= 'Building class'))%>%
+  ggplot(aes(x = type, y= Freq, fill = Var1))+
+  geom_bar(stat = 'identity', position = 'fill')+ylab('Frequency')+
+  coord_flip()+
+  theme_classic2()+
+  theme(legend.title = element_blank(),axis.title.y = element_blank(),legend.position = 'top' )
+
+#maybe include whether or not tax or buidling class category changed after sales?
+#and its relationship with price?
+
+type.labs <- c("Tax class change", "Building class change")
+names(type.labs) <- c("tax_class_change", "building_class_change")
+
+tax_price = dat%>%select(`SALE PRICE`, tax_class_change)%>%
+  cbind(dat%>%select(`SALE PRICE`, building_class_change))%>%
+  melt(id.vars = 'SALE PRICE')%>%
+  mutate(value = as.factor(value))%>%
+  ggplot(aes(x = value, y = `SALE PRICE`, group = value))+
+  geom_boxplot()+
+  facet_grid(cols = vars(variable), labeller = labeller(variable = type.labs))+
+  ylab('Sales Price')+
+  theme(legend.position = 'top')+theme_bw()+
+  theme(
+        axis.title.x = element_blank(),
+        strip.background = element_rect(color="black", fill="lightskyblue3", size=1.5, linetype="solid")
+   )
+  
+
+ggarrange(tax_change, tax_price, ncol = 2)
+
+```
+
+
+#figure 6:relationship between price and other numeric vectors. 
+```{r}
+dat$history = as.numeric(format(dat$`SALE DATE`,"%Y"))-dat$`YEAR BUILT`
+numeric_index = sapply(dat, is.numeric)
+numeric2d = dat[,numeric_index]%>%
+  select(-c(`ZIP CODE`, `YEAR BUILT`,tax_class_change, building_class_change))%>%
+  relocate(`SALE PRICE`, .after = history)
+# Check correlations (as scatterplots), distribution and print corrleation coefficient 
+ggpairs(numeric2d)+theme_bw()
+```
+
+
+#covid
+```{r}
+covid = read.csv('~/desktop/data-by-day.csv', stringsAsFactors = FALSE)%>%
+  select(date_of_interest, CASE_COUNT)%>%
+  dplyr::mutate(date_of_interest = as.Date(strptime(covid$date_of_interest, format="%m/%d/%Y")))
+covid_price = covid%>%filter(date_of_interest %in% unique(dat$`SALE DATE`))%>%
+  left_join(dat%>%select(`SALE DATE`, `SALE PRICE`)%>%group_by(`SALE DATE`) %>%summarise(count= n()), by = c('date_of_interest' = 'SALE DATE'))
+covid_price_long = covid_price%>%melt(id.var = 'date_of_interest')
+
+#two plots in one figure 
+ggplot(data = covid_price_long,aes( x = date_of_interest, y= value,group = variable, color = variable))+
+  geom_line()+
+  xlab('Date') + ylab('Count') + 
+  theme_bw()+
+  theme(legend.text = text(element_blank()))
+
+#facet version 
+labs <- c("Covid-19 case count", "Sales count")
+names(labs) <- c("CASE_COUNT", "count")
+ggplot(data = covid_price_long,aes( x = date_of_interest, y= value))+
+  geom_line()+
+  xlab('Date') + ylab('Count') + 
+  facet_wrap(~variable, scales = 'free',labeller = labeller(variable = labs))+
+  theme_bw()
+
+min(dat$`SALE DATE`)
+max(dat$`SALE DATE`)
+```
+
+#covid map 
+```{r}
+r <- GET('http://data.beta.nyc//dataset/0ff93d2d-90ba-457c-9f7e-39e47bf2ac5f/resource/35dd04fb-81b3-479b-a074-a27a37888ce7/download/d085e2f8d0b54d4590b1e7d1f35594c1pediacitiesnycneighborhoods.geojson')
+nyc_neighborhoods <- readOGR(content(r,'text'), 'OGRGeoJSON', verbose = F)
+nyc_neighborhoods_df <- tidy(nyc_neighborhoods)
+#nyc_zipcode maps zipcode to actual latitude and longitude 
+nyc_zipcode <- read.delim("US.txt",header = FALSE)%>%select(V2,V10, V11)%>%rename(Zipcode = V2, latitude = V10, longitude = V11)
+#get sales count for each zip code 
+nyc_zipcode_count = dat%>%
+  select(`ZIP CODE`)%>%
+  group_by(`ZIP CODE`)%>%
+  summarise(count = n())%>%left_join(unique(nyc_zipcode), by = c('ZIP CODE' = 'Zipcode'))
+
+nyc_zipcode_price = dat%>%
+  select(`ZIP CODE`,`SALE PRICE`)%>%
+  group_by(`ZIP CODE`)%>%
+  summarise(avg = mean(`SALE PRICE`))%>%left_join(unique(nyc_zipcode), by = c('ZIP CODE' = 'Zipcode'))
+
+
+points = nyc_zipcode_count
+points_spdf <- points
+coordinates(points_spdf) <- ~longitude + latitude
+proj4string(points_spdf) <- proj4string(nyc_neighborhoods)
+matches <- over(points_spdf, nyc_neighborhoods)
+points <- cbind(points, matches)
+
+plot_data <- points%>%left_join(tidy(nyc_neighborhoods, region="neighborhood"),by = c('neighborhood'='id'))
+  
+theme_bare <- theme(
+  axis.line = element_blank(), 
+  axis.text.x = element_blank(), 
+  axis.text.y = element_blank(),
+  axis.ticks = element_blank(), 
+  axis.title.x = element_blank(), 
+  axis.title.y = element_blank(),
+  legend.text=element_text(size=7),
+  legend.title=element_text(size=8),
+  panel.background = element_blank(),
+  panel.border = element_rect(colour = "gray", fill=NA, size=0.5)
+)
+
+#this would plot out entire new york 
+#ggplot() + 
+  #geom_polygon(data=nyc_neighborhoods_df, aes(x=long, y=lat, group=group),fill = 'grey', colour = 'black')
+
+map1 <- ggplot(data = plot_data, aes(x = long, y = lat, group = group))+
+  geom_polygon(aes(fill = count), color = 'gray', size = 0.1) + 
+  geom_polygon(data=nyc_neighborhoods_df, aes(x=long, y=lat, group=group), fill = NA, colour = 'grey')+
+  scale_fill_gradient(high = "#e34a33", low = "#fee8c8", guide = "colorbar") +
+  coord_fixed(1.3)+theme_bare
+
+
+
+points = nyc_zipcode_price
+points_spdf <- points
+coordinates(points_spdf) <- ~longitude + latitude
+proj4string(points_spdf) <- proj4string(nyc_neighborhoods)
+matches <- over(points_spdf, nyc_neighborhoods)
+points <- cbind(points, matches)
+plot_data <- points%>%left_join(tidy(nyc_neighborhoods, region="neighborhood"),by = c('neighborhood'='id')) 
+map2 = ggplot(data = plot_data, aes(x = long, y = lat, group = group))+
+  geom_polygon(aes(fill = avg), color = 'gray', size = 0.1) + 
+  geom_polygon(data=nyc_neighborhoods_df, aes(x=long, y=lat, group=group), fill = NA, colour = 'grey')+
+  scale_fill_gradient(high = "#e34a33", low = "#fee8c8", guide = "colorbar") +
+  coord_fixed(1.3)+theme_bare+labs(fill = 'Average Price')
+
+ggarrange(map1, map2,ncol=2)
+
+```
+
+
+
+
+
+
+
+
