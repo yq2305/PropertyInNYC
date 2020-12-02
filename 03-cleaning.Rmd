@@ -1,1 +1,49 @@
-# Data transformation
+---
+title: "03-cleaning"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(tidyverse)
+library(readxl)
+library(dplyr)
+```
+
+```{r}
+preprocess = function(dat){
+  dat = dat%>%
+  select(-c(`EASE-MENT`, `ADDRESS`,`APARTMENT NUMBER`,BLOCK,LOT))%>%
+  mutate(BOROUGH = as.factor(BOROUGH))%>%
+  mutate(NEIGHBORHOOD = as.factor(NEIGHBORHOOD))%>%
+  mutate(`BUILDING CLASS CATEGORY` = as.factor(`BUILDING CLASS CATEGORY`))%>%
+  mutate(`SALE DATE` = as.Date(`SALE DATE`, format = '%Y-%M-%d'))%>%
+  mutate(`SALE MONTH` = format(`SALE DATE`, "%Y-%m"))%>%
+  mutate(`TAX CLASS AT PRESENT` = as.character(`TAX CLASS AT PRESENT`))%>%
+  mutate(`BUILDING CLASS AT PRESENT` = as.character(`BUILDING CLASS AT PRESENT`))%>%
+  mutate(`TAX CLASS AT TIME OF SALE` = as.character(`TAX CLASS AT TIME OF SALE`))%>%
+  mutate(`BUILDING CLASS AT TIME OF SALE` = as.character(`BUILDING CLASS AT TIME OF SALE`))%>%
+  mutate(tax_class_change = ifelse(`TAX CLASS AT TIME OF SALE` == `TAX CLASS AT PRESENT`, 'no', 'yes'))%>%
+  mutate(building_class_change = ifelse(`BUILDING CLASS AT TIME OF SALE` == `BUILDING CLASS AT PRESENT`, 'no','yes'))%>%
+  mutate(history = as.numeric(format(dat$`SALE DATE`,"%Y"))-dat$`YEAR BUILT`)%>%
+  mutate(unit_price = `SALE PRICE`/ifelse(dat$`GROSS SQUARE FEET` == 0 , dat$`LAND SQUARE FEET`, dat$`GROSS SQUARE FEET`))%>%
+  filter(`SALE PRICE` >= 10000)%>%
+  drop_na()
+  return(dat)
+}
+
+dat = bind_rows(
+  preprocess(read_xlsx('rollingsales_manhattan.xlsx')),
+  preprocess(read_xlsx('rollingsales_queens.xlsx')),
+  preprocess(read_xlsx('rollingsales_bronx.xlsx')),
+  preprocess(read_xlsx('rollingsales_brooklyn.xlsx')),
+  preprocess(read_xlsx('rollingsales_statenisland.xlsx'))
+  )%>%
+  mutate(BOROUGH = factor(BOROUGH)%>%fct_recode('Manhattan' = '1','Brooklyn' = '3', 'Queens' = '4', 'Bronx' = '2', 'Staten' = '5' ))
+
+sapply(dat,class)
+```
