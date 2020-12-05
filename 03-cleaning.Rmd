@@ -37,11 +37,11 @@ preprocess = function(dat){
 }
 
 dat = bind_rows(
-  preprocess(read_xlsx('rollingsales_manhattan.xlsx')),
-  preprocess(read_xlsx('rollingsales_queens.xlsx')),
-  preprocess(read_xlsx('rollingsales_bronx.xlsx')),
-  preprocess(read_xlsx('rollingsales_brooklyn.xlsx')),
-  preprocess(read_xlsx('rollingsales_statenisland.xlsx'))
+  preprocess(read_xlsx('data/rollingsales_manhattan.xlsx')),
+  preprocess(read_xlsx('data/rollingsales_queens.xlsx')),
+  preprocess(read_xlsx('data/rollingsales_bronx.xlsx')),
+  preprocess(read_xlsx('data/rollingsales_brooklyn.xlsx')),
+  preprocess(read_xlsx('data/rollingsales_statenisland.xlsx'))
   )%>%
   mutate(BOROUGH = factor(BOROUGH)%>%fct_recode('Manhattan' = '1','Brooklyn' = '3', 'Queens' = '4', 'Bronx' = '2', 'Staten' = '5' ))
 
