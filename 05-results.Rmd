@@ -212,7 +212,14 @@ theme_bare <- theme(
   axis.title.y = element_blank(),
   panel.background = element_blank(),
   panel.border = element_rect(colour = "gray", fill=NA, size=0.5))
+
+dat[which(dat$`ZIP CODE`==10034),]%>%select(`BUILDING CLASS CATEGORY`, `LAND SQUARE FEET`, `GROSS SQUARE FEET`, unit_price)%>%arrange(desc(unit_price))
 ```
+
+Figure 8(a) shows COVID-19 case rate per 100,000 people and property sales by record where the top ten zipcodes are highlighted. Zipcodes with highest COVID-19 case rate are mostly located in Queens. 
+
+Zipcodes with the highest median uinit sales price are mostly located in Manhattan, with the exception of 11249 in Brooklyn and 10034 in Bronx. The zipcode with the highest median unit sales price is 10105 in Manhattan; its median unit price is 8915.551 USD per square feet, while all other zipcodes have median unit price below 2,000 USD per square feet. In fact, there is only one transaction of commercial vacant land in 10105 which has a extreme high unit price. On the other hand, the fact that 10034 in Bronx being the third most expensive zipcode is quite suprising, based on our previous findings. A closer examination of the zipcode shows that there are only 4 property transactions in 10034 and there are two property sales(one commericial garages and religious facilities) with very high unit price and thus drove up the median unit price. 
+
 
 
 ```{r,fig.width=24, fig.height=24}
@@ -229,7 +236,7 @@ map1 = nyc_zip_boundary%>%
   ggplot()+
   geom_sf(aes(fill = COVID_CASE_RATE))+
   scale_fill_gradient(high = "#e34a33", low = "#fee8c8", guide = "colorbar")+
-  ggtitle('Covid-19 case rate by zipcode')+
+  ggtitle('Covid-19 case rate(per 100,000 population) by zipcode')+
   labs(fill = 'Case rate')+
   theme_bare+
   ggrepel::geom_label_repel(
@@ -253,7 +260,7 @@ map2 = nyc_zip_boundary%>%
   ggplot()+
   geom_sf(aes(fill = count))+
   scale_fill_gradient(high = "#e34a33", low = "#fee8c8", guide = "colorbar")+
-  ggtitle('Total sales count by zipcode')+
+  ggtitle('Sales count by zipcode')+
   labs(fill = 'Sales count')+
   theme_bare+
   ggrepel::geom_label_repel(
@@ -281,7 +288,7 @@ map3= nyc_zip_boundary%>%
   #geom_sf_text(aes(label = ZIPCODE), colour = "white")
   scale_fill_gradient(high = "#e34a33", low = "#fee8c8", guide = "colorbar")+
   theme_bare+labs(fill = 'Total sales amount')+
-    ggtitle('Total sales amount by zipcode')+
+    ggtitle('Sales amount by zipcode')+
   ggrepel::geom_label_repel(
     data = nyc_zip_boundary%>%left_join(nyc_zipcode_amount, by = c('ZIPCODE' = 'ZIP CODE'))%>%
           arrange(desc(amount))%>%head(10),
@@ -303,7 +310,8 @@ map4 = nyc_zip_boundary%>%
   ggplot()+
   geom_sf(aes(fill = median_unit))+
   #geom_sf_text(aes(label = ZIPCODE), colour = "white")
-  scale_fill_gradient(high = "#e34a33", low = "#fee8c8", guide = "colorbar")+
+  #scale_fill_gradient(high = "#e34a33", low = "#fee8c8", guide = "colorbar",trans = 'log', breaks = c(8000, 2000, 1600, 1200,800, 400,0),labels = c(8000, 2000, 1600, 1200,800, 400,0))+
+  scale_fill_binned(high = "#e34a33", low = "#fee8c8",breaks = c(9000, 2000, 1600, 1200, 800, 400, 0), trans = 'log')+
   theme_bare+labs(fill = 'Median unit sales price')+
   ggrepel::geom_label_repel(
     data = nyc_zip_boundary%>%left_join(nyc_zipcode_price, by = c('ZIPCODE' = 'ZIP CODE'))%>%
@@ -313,12 +321,15 @@ map4 = nyc_zip_boundary%>%
     min.segment.length = 0,
     colour = "magenta",
     segment.colour = "magenta")+
-    ggtitle('Median unit sales price by zipcode')
+    ggtitle('Median unit price by zipcode')
 
 fig8_1= ggarrange(map1, map2, map3, map4, nrow = 2, ncol = 2)
 annotate_figure(fig8_1,
-               bottom = text_grob('Figure 8(a):Covid-19 rate and property sales by zipcode', 
+               bottom = text_grob('Figure 8(a):COVID-19 rate and property sales by zipcode', 
                                   hjust = 0.5, face = "italic", size = 35))
+
+
+
 ```
 
 
@@ -343,7 +354,7 @@ fig8a = zipcode_dat%>%
   geom_point(color = "#CC6666",size = 3)+
   geom_density_2d(color ="#9999CC")+
   xlab('COVID-19 case rate') + ylab('Count')+
-  ggtitle('Sales count vs. COVID-19 case count')+
+  ggtitle('Sales count')+
   theme_regular
 
 fig8b = zipcode_dat%>%
@@ -351,7 +362,7 @@ fig8b = zipcode_dat%>%
   geom_point(color = "#CC6666",size = 3)+
   geom_density_2d(color ="#9999CC")+
   xlab('COVID-19 case rate') + ylab('Amount(USD)')+
-  ggtitle('Sales amount vs. COVID-19 case count')+
+  ggtitle('Sales amount')+
   theme_regular
 
 fig8c = zipcode_dat%>%
@@ -359,12 +370,12 @@ fig8c = zipcode_dat%>%
   geom_point(color = "#CC6666",size = 3)+
   geom_density_2d(color ="#9999CC")+
   xlab('COVID-19 case rate') + ylab('Median unit price')+
-  ggtitle('Median unit sales price vs. COVID-19 case count')+
+  ggtitle('Median unit sales price')+
   theme_regular
 fig8_2= ggarrange(fig8a, fig8b, fig8c, nrow = 1, ncol = 3)
 annotate_figure(fig8_2,
-               bottom = text_grob('Figure 8(b):Association between property sales and COVID-19 case rate(out of 100,000) by zipcode', 
-                                  hjust = 0.5, face = "italic", size = 20))
+                top = text_grob('COVID-19 case rate(per 10,000 population) vs. ',hjust =0.5, face = 'bold', size = 20 ), 
+               bottom = text_grob('Figure 8(b):Association between property sales and COVID-19 case rate(out of 100,000) by zipcode', hjust = 0.5, face = "italic", size = 20))
 
 
 #cor.test(zipcode_dat$COVID_CASE_RATE, zipcode_dat$count,method = 'pearson')
