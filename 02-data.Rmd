@@ -3,20 +3,35 @@
 Our project is mainly based on a data set about sales data of properties in New York City that sold from 2019-11-01 to 2020-10-31, named *Rolling Sales data*. The data is collected and provided by the NYC Department of Finance [(See it from nyc.gov website)](https://www1.nyc.gov/site/finance/taxes/property-rolling-sales-data.page). The data set has over 35 thousand records, and each record includes the following variables:
 
 **Borough** (factor): The name of the borough in which the property is located
+
 **Neighborhood** (factor): The name of the neighborhood in which the property is located
+
 **Zip Code** (numeric): The property’s postal code
+
 **Building Class Category** (factor): A descriptive category about the usage of the property
+
 **Building Class at Present** (char): The building code of the property at present, which is used to describe the property’s constructive use
+
 **Building Class at Time of Sale** (char): The building code of the property at time of sale
+
 **Tax Class at Present** (char): The tax class of the property at present
+
 **Tax Class at Time of Sale** (char): The tax class of the property at time of sale
+
 **Residential Units** (numeric): The number of residential units at the property
+
 **Commercial Units** (numeric): The number of commercial units at the property
+
 **Total Units** (numeric): The total number of units at the property
+
 **Land Square Feet** (numeric): The land area of the property in square feet
+
 **Gross Square Feet** (numeric): The total area of all the floors of a building in square feet.
+
 **Year Built** (numeric): Year the structure on the property was built
+
 **Sales Price** (numeric): Price paid for the property
+
 **Sale Date** (date): Date the property sold
 
 Here we only list the variables we have used in our project. For a complete list of variables, please refer to the glossary document of the data. [(See it from nyc.gov website)](https://www1.nyc.gov/assets/finance/downloads/pdf/07pdf/glossary_rsf071607.pdf).

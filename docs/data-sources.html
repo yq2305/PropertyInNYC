@@ -24,7 +24,7 @@
 <meta name="author" content="Guotian Zhu, Yuxin Qian, Zhiheng Jiang, Jiayi Pan" />
 
 
-<meta name="date" content="2020-11-22" />
+<meta name="date" content="2020-12-05" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -32,7 +32,7 @@
   
   
 <link rel="prev" href="index.html"/>
-<link rel="next" href="data-transformation.html"/>
+<link rel="next" href="missing-values.html"/>
 <script src="libs/jquery-2.2.3/jquery.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
 <link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
@@ -74,11 +74,10 @@
 <li class="divider"></li>
 <li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> Introduction</a></li>
 <li class="chapter" data-level="2" data-path="data-sources.html"><a href="data-sources.html"><i class="fa fa-check"></i><b>2</b> Data sources</a></li>
-<li class="chapter" data-level="3" data-path="data-transformation.html"><a href="data-transformation.html"><i class="fa fa-check"></i><b>3</b> Data transformation</a></li>
-<li class="chapter" data-level="4" data-path="missing-values.html"><a href="missing-values.html"><i class="fa fa-check"></i><b>4</b> Missing values</a></li>
-<li class="chapter" data-level="5" data-path="results.html"><a href="results.html"><i class="fa fa-check"></i><b>5</b> Results</a></li>
-<li class="chapter" data-level="6" data-path="interactive-component.html"><a href="interactive-component.html"><i class="fa fa-check"></i><b>6</b> Interactive component</a></li>
-<li class="chapter" data-level="7" data-path="conclusion.html"><a href="conclusion.html"><i class="fa fa-check"></i><b>7</b> Conclusion</a></li>
+<li class="chapter" data-level="3" data-path="missing-values.html"><a href="missing-values.html"><i class="fa fa-check"></i><b>3</b> Missing values</a></li>
+<li class="chapter" data-level="4" data-path="results.html"><a href="results.html"><i class="fa fa-check"></i><b>4</b> Results</a></li>
+<li class="chapter" data-level="5" data-path="interactive-component.html"><a href="interactive-component.html"><i class="fa fa-check"></i><b>5</b> Interactive component</a></li>
+<li class="chapter" data-level="6" data-path="conclusion.html"><a href="conclusion.html"><i class="fa fa-check"></i><b>6</b> Conclusion</a></li>
 <li class="divider"></li>
 <li><a href="https://github.com/rstudio/bookdown" target="blank">Published with bookdown</a></li>
 </ul>
@@ -100,6 +99,28 @@
             <section class="normal" id="section-">
 <div id="data-sources" class="section level1">
 <h1><span class="header-section-number">Chapter 2</span> Data sources</h1>
+<p>Our project is mainly based on a data set about sales data of properties in New York City that sold from 2019-11-01 to 2020-10-31, named <em>Rolling Sales data</em>. The data is collected and provided by the NYC Department of Finance <a href="https://www1.nyc.gov/site/finance/taxes/property-rolling-sales-data.page">(See it from nyc.gov website)</a>. The data set has over 35 thousand records, and each record includes the following variables:</p>
+<p><strong>Borough</strong> (factor): The name of the borough in which the property is located</p>
+<p><strong>Neighborhood</strong> (factor): The name of the neighborhood in which the property is located</p>
+<p><strong>Zip Code</strong> (numeric): The property’s postal code</p>
+<p><strong>Building Class Category</strong> (factor): A descriptive category about the usage of the property</p>
+<p><strong>Building Class at Present</strong> (char): The building code of the property at present, which is used to describe the property’s constructive use</p>
+<p><strong>Building Class at Time of Sale</strong> (char): The building code of the property at time of sale</p>
+<p><strong>Tax Class at Present</strong> (char): The tax class of the property at present</p>
+<p><strong>Tax Class at Time of Sale</strong> (char): The tax class of the property at time of sale</p>
+<p><strong>Residential Units</strong> (numeric): The number of residential units at the property</p>
+<p><strong>Commercial Units</strong> (numeric): The number of commercial units at the property</p>
+<p><strong>Total Units</strong> (numeric): The total number of units at the property</p>
+<p><strong>Land Square Feet</strong> (numeric): The land area of the property in square feet</p>
+<p><strong>Gross Square Feet</strong> (numeric): The total area of all the floors of a building in square feet.</p>
+<p><strong>Year Built</strong> (numeric): Year the structure on the property was built</p>
+<p><strong>Sales Price</strong> (numeric): Price paid for the property</p>
+<p><strong>Sale Date</strong> (date): Date the property sold</p>
+<p>Here we only list the variables we have used in our project. For a complete list of variables, please refer to the glossary document of the data. <a href="https://www1.nyc.gov/assets/finance/downloads/pdf/07pdf/glossary_rsf071607.pdf">(See it from nyc.gov website)</a>.</p>
+<p>For the most part, the data set is complete. However, one problem with the data is that some properties do not have available data of gross square feet, while others do not have available data of land square feet, which caused some difficulty when we were choosing a denominator to calculate the unit price of properties. Another problem is that the data records all transfers of property ownership, including those without a cash consideration, like a transfer of ownership from parents to children. These cases usually have $0 or very low sales prices. How we should set up a threshold to exclude these cases became a question. In the next section, we will discuss the way we handle these problems.</p>
+<p>Besides the major data set, two other data sets were partly involved in section 5.2. The first one is the <em>NYC Coronavirus Disease 2019 (COVID-19) Data</em> provided by the NYC Health Department <a href="https://github.com/nychealth/coronavirus-data">(See this GitHub repo)</a>. We used this data for the daily Covid-19 count in NYC in 2020. The other data set is the sales record of properties in NYC from 2019-01-01 to 2019-12-31<a href="https://www1.nyc.gov/site/finance/taxes/property-annualized-sales-update.page">(See nyc.gov website)</a>, which has the exact same format as the major data set, and is also collected by the Department of Finance.
+For map visualization, we used data of zip code boundaries of NYC, which is provided by the Department of Information Technology &amp; Telecommunications (DoITT) <a href="https://data.cityofnewyork.us/Business/Zip-Code-Boundaries/i8iw-xf4u/data?no_mobile=true">(See NYC Open Data)</a>.</p>
+
 
 </div>
             </section>
@@ -108,7 +129,7 @@
         </div>
       </div>
 <a href="index.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
-<a href="data-transformation.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+<a href="missing-values.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>
