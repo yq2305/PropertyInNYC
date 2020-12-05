@@ -59,5 +59,4 @@ ggplot(data = dat, aes(x = `SALE PRICE`))+
   theme_regular
 ```
 
-We preprocessed the property sales data of year 2019 in the same fashion as we processed our property sales data. However, although we have data for property sales from 2019-01-01 to 2019-12-31, we only included records from 2019-03-01 to 2019-10-31 for comparison purposes. 
-COVID-19 related data for NYC are availabel starting from 2020-02-29 and are rolling sales data only contains records until 2020-10-31. 
+We preprocessed the property sales data of year 2019 in the same fashion as we processed our property sales data. However, although we have data for property sales from 2019-01-01 to 2019-12-31, we only included records from 2019-03-01 to 2019-10-31 for comparison purposes. (COVID-19 related data for NYC are availabel starting from 2020-02-29 and are rolling sales data only contains records until 2020-10-31). 
