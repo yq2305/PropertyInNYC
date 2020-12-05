@@ -1,12 +1,8 @@
 ---
 title: "Fig_5_and_6"
-output: html_document
+output: word_document
 ---
 
----
-title: "Untitled"
-output: html_document
----
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -83,7 +79,7 @@ tax_change = as.data.frame(table(dat$tax_class_change))%>%mutate(type = 'Tax cla
   scale_fill_manual(values = c("#0072b2", "#d55e00"),labels = c('Unchanged','Changed'))+
   geom_col(position = position_stack(reverse = TRUE))+
   coord_flip()+
-  ggtitle("Frequency of class change after sales")
+  ggtitle("Frequency of Class Change After Sales")
 
 #maybe include whether or not tax or buidling class category changed after sales?
 #and its relationship with price?
@@ -108,7 +104,7 @@ tax_price2 = tax_price1 + coord_cartesian(ylim=c(0, 3500000))
 
 tax_price1 = tax_price1 +
   theme(plot.title = element_text(hjust = 0.5)) +
-  ggtitle("Sales price grouped by class change")
+  ggtitle("Sales Price Grouped by Class Change")
 
 ggarrange(tax_change, tax_price1, NULL, tax_price2, 
           ncol = 2, nrow = 2)
@@ -116,21 +112,19 @@ ggarrange(tax_change, tax_price1, NULL, tax_price2,
 
 
 #figure 6:relationship between price and other numeric vectors. 
-```{r,fig.width=12, fig.height=12}
-dat$history = as.numeric(format(dat$`SALE DATE`,"%Y"))-dat$`YEAR BUILT`
-numeric_index = sapply(dat, is.numeric)
-numeric2d = dat[,numeric_index]%>%
-  select(-c(`ZIP CODE`, `YEAR BUILT`))%>%
-  relocate(`SALE PRICE`, .after = history)
-mult_var = ggpairs(numeric2d,
-                   upper = list(continuous = wrap(ggally_cor, size = 5))) + 
+```{r fig.height=14, fig.width=14, message=FALSE, warning=FALSE}
+mult_var = ggpairs(dat, columns = c(7:11,15),
+                   mapping= aes(colour = factor(`BOROUGH`, 
+                                                labels =
+                                                  c("Man.","Qns.","Brnx.","Bkyn.","Stn.")))) + 
   scale_y_continuous(trans = 'sqrt')+
   scale_x_continuous(trans = 'sqrt')+
-  theme_bw(base_size = 10) +
-  ggtitle("Association between continuous variables to sales price") +
-  theme(plot.title = element_text(hjust = 0.5, size = 16),
+  theme_bw(base_size = 12) +
+  ggtitle("Association between Continuous Variables to Sales Price") +
+  theme(plot.title = element_text(hjust = 0.5, size = 18),
         axis.text.x = element_text(angle = 90))
-suppressWarnings(print(mult_var, progress=FALSE))
+  
+print(mult_var, progress=FALSE)
 ```
 
 

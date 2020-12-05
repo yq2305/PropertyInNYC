@@ -1,2 +1,27 @@
 # Data sources
 
+Our project is mainly based on a data set about sales data of properties in New York City that sold from 2019-11-01 to 2020-10-31, named *Rolling Sales data*. The data is collected and provided by the NYC Department of Finance [(See it from nyc.gov website)](https://www1.nyc.gov/site/finance/taxes/property-rolling-sales-data.page). The data set has over 35 thousand records, and each record includes the following variables:
+
+**Borough** (factor): The name of the borough in which the property is located
+**Neighborhood** (factor): The name of the neighborhood in which the property is located
+**Zip Code** (numeric): The property’s postal code
+**Building Class Category** (factor): A descriptive category about the usage of the property
+**Building Class at Present** (char): The building code of the property at present, which is used to describe the property’s constructive use
+**Building Class at Time of Sale** (char): The building code of the property at time of sale
+**Tax Class at Present** (char): The tax class of the property at present
+**Tax Class at Time of Sale** (char): The tax class of the property at time of sale
+**Residential Units** (numeric): The number of residential units at the property
+**Commercial Units** (numeric): The number of commercial units at the property
+**Total Units** (numeric): The total number of units at the property
+**Land Square Feet** (numeric): The land area of the property in square feet
+**Gross Square Feet** (numeric): The total area of all the floors of a building in square feet.
+**Year Built** (numeric): Year the structure on the property was built
+**Sales Price** (numeric): Price paid for the property
+**Sale Date** (date): Date the property sold
+
+Here we only list the variables we have used in our project. For a complete list of variables, please refer to the glossary document of the data. [(See it from nyc.gov website)](https://www1.nyc.gov/assets/finance/downloads/pdf/07pdf/glossary_rsf071607.pdf).
+
+For the most part, the data set is complete. However, one problem with the data is that some properties do not have available data of gross square feet, while others do not have available data of land square feet, which caused some difficulty when we were choosing a denominator to calculate the unit price of properties. Another problem is that the data records all transfers of property ownership, including those without a cash consideration, like a transfer of ownership from parents to children. These cases usually have $0 or very low sales prices. How we should set up a threshold to exclude these cases became a question. In the next section, we will discuss the way we handle these problems.
+
+Besides the major data set, two other data sets were partly involved in section 5.2. The first one is the *NYC Coronavirus Disease 2019 (COVID-19) Data* provided by the NYC Health Department [(See this GitHub repo)]( https://github.com/nychealth/coronavirus-data). We used this data for the daily Covid-19 count in NYC in 2020. The other data set is the sales record of properties in NYC from 2019-01-01 to 2019-12-31[(See nyc.gov website)]( https://www1.nyc.gov/site/finance/taxes/property-annualized-sales-update.page), which has the exact same format as the major data set, and is also collected by the Department of Finance.
+For map visualization, we used data of zip code boundaries of NYC, which is provided by the Department of Information Technology & Telecommunications (DoITT) [(See NYC Open Data)](https://data.cityofnewyork.us/Business/Zip-Code-Boundaries/i8iw-xf4u/data?no_mobile=true).
