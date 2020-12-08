@@ -1,2 +1,0 @@
-# Missing values
-There is no missing value after our preprocessing of the data.
