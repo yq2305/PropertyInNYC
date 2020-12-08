@@ -5,7 +5,7 @@ Within the property sales data set which contains 35873 records, there are 15178
 By such an exclusion, we reduced a large amount of skewness of the data as the number of figures of the sales price from the rest of the records are approximately symmetric with a mean of seven figures. Hence, 10,000 seemed a reasonable threshold. Specifically, beyond the 15,178 records with sales price 0, there are 838 sales records with sales price between 1(inclusive) and 10,000. We regarded these 16016 records as unhelpful transactions and ignored them in our further analysis. 
 
 
-```{r setup, include=FALSE}
+```{r include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
