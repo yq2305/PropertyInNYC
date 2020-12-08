@@ -1,5 +1,5 @@
 --- 
-title: "Business around Columbia Campus"
+title: "2019-2020 Property Sales in NYC Data Visualization"
 author: "Guotian Zhu, Yuxin Qian, Zhiheng Jiang, Jiayi Pan"
 date: "`r Sys.Date()`"
 site: bookdown::bookdown_site
