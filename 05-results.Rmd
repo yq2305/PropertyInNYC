@@ -16,6 +16,10 @@ library(broom)
 library(httr)
 library(rgdal)
 library(ggpubr)
+library('tmap')
+library('tmaptools')
+library(sf)
+library(RColorBrewer)
 library(readxl)
 ```
 
@@ -48,13 +52,6 @@ dat = bind_rows(
   preprocess(read_xlsx('data/rollingsales_statenisland.xlsx'))
   )%>%
   mutate(BOROUGH = factor(BOROUGH)%>%fct_recode('Manhattan' = '1','Brooklyn' = '3', 'Queens' = '4', 'Bronx' = '2', 'Staten' = '5' ))
-#sapply(dat,class)
-#for plotting, rugular theme 
-theme_regular = theme_light()+
-        theme(plot.title =element_text(hjust = 0.5,size = 20,face = "bold"),
-        legend.title = element_blank(),legend.position = 'top',legend.text = element_text(size = 16),
-        axis.title = element_text(size = 16),axis.text=element_text(size=12),
-        plot.caption = element_text(vjust = -0.5, hjust = 0.5, face = "italic",size = 12))
 
 preprocess_2019 = function(dat){
   colnames(dat) = gsub(pattern = '\n', replacement = '', x = colnames(dat))
@@ -67,6 +64,7 @@ preprocess_2019 = function(dat){
     mutate(`SALE DATE` = as.Date(`SALE DATE`, format = '%Y-%M-%d'))
   return(dat)
 }
+
 dat_2019 = bind_rows(
   preprocess_2019(read_xlsx('data/2019_manhattan.xlsx')),
   preprocess_2019(read_xlsx('data/2019_bronx.xlsx')),
@@ -91,20 +89,192 @@ dat_2020_summary = dat%>%
   mutate(pure_date = format(`SALE DATE`, '%m-%d'))%>%
   group_by(`SALE DATE`, pure_date)%>%
   summarise(avg= sum(`SALE PRICE`)))
-#plot covid: only keep dates that both in covid data and in 2020 sales data 
 
+myColors <- brewer.pal(5,"Set1")
+names(myColors) <- levels(dat$BOROUGH)
+colScale <- scale_colour_manual(name = "grp",values = myColors)
+```
+
+**Section 5.1. Property sales evolution and distribution in NYC**
+
+We first take a look at the property sales by borough. In the upper left plot in figure 1, we observe that Queens and Brooklyn have the highest property sales in the past 12 months, while Manhattan is the borough with significantly lower property sales. However, in terms of total sales amount (accumulated sale prices in each borough), Manhattan reaches the highest amount of total sales with the least sales count. Although Queens has a higher sales count than Brooklyn, it has less total sales amount (upper right in figure 1). While we inspect the unit price, which is the price per square feet of each property, Manhattan has the highest median unit price in all five boroughs, and Brooklyn has a higher median unit price than Queens. This observation is consistent with our inspection of the upper two plots. Also, we noticed that the Bronx has the lowest median unit price among all 5 boroughs.
+
+```{r}
+#for plotting, rugular theme 
+theme_regular = theme_light()+
+        theme(plot.title =element_text(hjust = 0.5,size = 28,face = "bold"),
+        legend.title = element_blank(),legend.position = 'top',legend.text = element_text(size = 25),
+        axis.title = element_text(size = 25),axis.text=element_text(size=14),
+        plot.caption = element_text(vjust = -0.5, hjust = 0.5, face = "italic",size = 18))
+```
+
+
+```{r, fig.width=20, fig.height=8}
+#figure 1
+stat_by_borough = dat%>%select(BOROUGH, NEIGHBORHOOD,`SALE PRICE`, unit_price)%>%
+  group_by(BOROUGH)%>%
+  summarise(tot = sum(`SALE PRICE`),mda = median(unit_price))
+
+sale_by_borough <- ggplot(data = dat, aes(x=fct_rev(fct_infreq(BOROUGH)),fill=BOROUGH))+
+  geom_bar()+
+  ggtitle('Sales Count by Borough')+
+  xlab('Borough')+ylab('Sales count')+
+  coord_flip()+
+  theme_regular
+
+total_sale <- ggplot(data=stat_by_borough, aes(x = reorder(BOROUGH,tot), y = tot, fill = BOROUGH))+
+  geom_col()+
+  xlab('') + ylab('Sale amount')+
+  ggtitle('Sales Amount by Borough')+
+  coord_flip()+
+  theme_regular
+
+avg_per_square_by_borough <- ggplot(data = stat_by_borough, aes(x = reorder(BOROUGH,mda), y = mda, fill = BOROUGH))+
+  geom_col()+
+  xlab('') + ylab('Median sales price per sqft')+
+  ggtitle('Median Unit Price')+
+  coord_flip()+
+  theme_regular
+
+fig_1 <- ggarrange(sale_by_borough,total_sale,avg_per_square_by_borough, common.legend = TRUE, ncol = 3, nrow= 1)
+annotate_figure(fig_1,
+               bottom = text_grob('Figure 1: Sales by borough', hjust = 0.5, face = "italic", size = 25))
+```
+
+Next, we inspect the time series for the sale amount, total sale, and median unit sale price in the past year for each borough separately. From the daily sales amount, we observe that the Bronx, Brooklyn, Queens, and Staten Island share a similar trend, while Brooklyn and Queens are almost identical in their magnitudes of each day's sales. For Manhattan, the general sales amount is low, but there are three peaks, one in January, one in March, and one in November. Moving forward to the time series of daily sales amount, we observe that the sales amount per day is consistent with several peaks for all boroughs. For median unit price per day, we notice that Manhattan has higher statistics than other boroughs, which matches with the intuition.
+
+
+```{r, fig.width=18, fig.height=6}
+#for plotting, rugular theme 
+theme_regular2 = theme_light()+
+        theme(plot.title =element_text(hjust = 0.5,size = 28,face = "bold"),
+        legend.title = element_blank(),legend.position = 'top',legend.text = element_text(size = 22),
+        axis.title = element_text(size = 25),axis.text=element_text(size=12),
+        plot.caption = element_text(vjust = -0.5, hjust = 0.5, face = "italic",size = 18))
+
+#figure 2
+sale_count_day = dat%>%
+  select(BOROUGH, `SALE DATE`)%>%
+  group_by(BOROUGH, `SALE DATE`)%>%
+  summarise(count = n())%>%
+  ggplot(aes(x = `SALE DATE`, y = count, group = BOROUGH, color = BOROUGH))+
+  geom_line()+
+  xlab('Date') + ylab('Sales count')+
+  ggtitle('Sales Count by Day')+
+  theme_regular2+
+  facet_grid(BOROUGH ~ ., scale='free_x')
+
+tot_sale_by_day = dat%>%
+  select(BOROUGH, `SALE DATE`,`SALE PRICE`)%>%
+  group_by(BOROUGH, `SALE DATE`)%>%
+  summarise(tot = mean(`SALE PRICE`))%>%
+  ggplot(aes(x = `SALE DATE`, y = tot, group = BOROUGH, color = BOROUGH))+
+  geom_line()+
+  xlab('Date') + ylab('Sales amount')+
+  ggtitle('Sales Amount by Day')+
+  theme_regular2+
+  facet_grid(BOROUGH ~ ., scale='free')
+
+median_sale_by_day = dat%>%
+  select(BOROUGH, `SALE DATE`,unit_price)%>%
+  group_by(BOROUGH, `SALE DATE`)%>%
+  summarise(mda = median(unit_price))%>%
+  ggplot(aes(x = `SALE DATE`, y = mda, group = BOROUGH, color = BOROUGH))+
+  geom_line()+
+  xlab('Date') + ylab('Sales price per sqft')+
+  ggtitle('Median Unit Price by Day')+
+  theme_regular2+
+  facet_grid(BOROUGH ~ ., scale='free')
+
+
+fig_2 <- ggarrange(sale_count_day, tot_sale_by_day, median_sale_by_day, common.legend = TRUE, ncol = 3,nrow=1)
+annotate_figure(fig_2,
+               bottom = text_grob('Figure 2: Times series of sales by borough', hjust = 0.5, face = "italic", size = 25))
+```
+
+Then, we use a Cleveland dot plot to visualize the top 20 most popular neighborhoods in terms of sales count, and the top 20 most expensive neighborhoods in terms of the median unit price. From the first plot, we observe the neighborhoods from Queens and Brooklyn dominate the top 20 most popular ones, with two exceptions of Great Kills from Staten Island at 4th place and Baychester from the Bronx at 16th place. In the ranking of the most expensive neighborhoods, neighborhoods from Manhattan and Brooklyn share all top 20.
+
+```{r,fig.width=12, fig.height=12}
+#figure 3
+theme_regular3 = theme_light()+
+        theme(plot.title =element_text(hjust = 0.5,size = 18,face = "bold"),
+        legend.title = element_blank(),legend.position = 'top',legend.text = element_text(size = 16),
+        axis.title = element_text(size = 16),axis.text=element_text(size=12),
+        plot.caption = element_text(vjust = -0.5, hjust = 0.5, face = "italic",size = 18))
+
+try = dat%>%select(BOROUGH, NEIGHBORHOOD,`SALE PRICE`, unit_price)%>%
+  group_by(BOROUGH, NEIGHBORHOOD)%>%
+  summarise(avg = mean(`SALE PRICE`),mda_psf = median(unit_price))%>%
+  left_join(dat%>%select(NEIGHBORHOOD)%>%
+  group_by(NEIGHBORHOOD)%>%
+  summarise(count = n()) )
+
+most_expensive_persquare = try[order(-try$mda_psf),]%>%
+  head(20)%>%
+  ggplot(aes(y = reorder(NEIGHBORHOOD,mda_psf), x = mda_psf, color = BOROUGH))+
+  geom_point(size=3)+
+  xlab('Median unit price per sqft')+
+  ylab('Neighborhood')+
+  ggtitle('Top 20 Most Expensive Neighborhoods')+labs(color = 'Borough')+
+  theme_regular3+
+  colScale
+
+most_popular = try[order(-try$count),]%>%
+  head(20)%>%
+  ggplot(aes(y = reorder(NEIGHBORHOOD,count), x = count, color = BOROUGH))+
+  geom_point(size=3)+
+  xlab('Sales count')+
+  ylab('Neighborhood')+
+  ggtitle('Top 20 Most Popular Neighborhoods')+labs(color = 'Borough')+
+  theme_regular3+
+  colScale
+
+fig_3 = ggarrange(most_popular,most_expensive_persquare,ncol = 1, nrow=2,common.legend = FALSE, legend = 'top', label.x = list("Manhattan", "Queens", "Bronx", "Brooklyn", "Staten"))
+
+annotate_figure(fig_3,
+               bottom = text_grob('Figure 3: Top 20 most expensive (left) and most popular (right) neighborhoods in NYC', hjust = 0.5, face = "italic", size = 20))
+```
+
+In this part, we look deeper into the statistics and categorize the median unit price by the building categories of the properties. An interesting observation is that for the family dwellings, one is the most expensive, two is less, and three is the least expensive. This trend holds for all boroughs in NYC. Furthermore, while family dwellings in Queens, the Bronx, Brooklyn, and Staten are similar in price, the same type of property in Manhattan is much higher than the other neighborhoods. We also noticed that they all are in the same descending order in terms of median unit price: Manhattan, Brooklyn, Queens, Staten, and the Bronx at last.
+
+```{r, fig.height=6, fig.width=12}
+#figure 4
+require("scales")
+theme_rot_x = theme_light()+
+        theme(plot.title =element_text(hjust = 0.5,size = 20,face = "bold"),
+        legend.title = element_blank(),legend.position = 'top',legend.text = element_text(size = 16),
+        axis.title = element_text(size = 16),axis.text=element_text(size=12),
+        axis.text.x=element_text(angle=90))
+
+median_price_cate <- dat%>%select(BOROUGH, `BUILDING CLASS CATEGORY`,unit_price)%>%
+  group_by(BOROUGH, `BUILDING CLASS CATEGORY`)%>%
+  summarise(avg = median(unit_price))%>%
+  ggplot(aes(y = fct_rev(as.factor(as.character(`BUILDING CLASS CATEGORY`))), x = avg))+
+  geom_point(aes(color=BOROUGH),size=3)+
+  #facet_wrap(~BOROUGH)+
+  xlab('Median unit price')+
+  ylab('Building category')+
+  ggtitle('Median Unit Price vs. Building Category')+
+  scale_x_log10(
+   breaks = scales::trans_breaks("log10", function(x) 10^x),
+   labels = scales::trans_format("log10", scales::math_format(10^.x))
+ )+
+  theme_rot_x+
+  colScale
+
+fig_4 = median_price_cate+
+  annotation_logticks(sides = "b")
+
+annotate_figure(fig_4,
+               bottom = text_grob('Figure 4: Price versus building category', hjust = 0.5, face = "italic", size = 16))
 
 ```
 
-**Section 5.1 Association among variables**
+When we look at the percentage of properties that has the tax or building class changed after sales, we observe from the left plot that around 10% of properties experienced tax class change after sales and few of them experienced building class change. 
 
-When we looked into the percentage of properties that had their tax or building class changed after sales, we observed from the left plot that around 10% properties experienced tax class change after sales and few properties experienced building class change. 
+Then we draw a box plot of the sales price distribution, and grouped it by whether or not the properties experienced class change to see if the sales price of the properties in one group is different from those in the other.
 
-We would like to see if the sales price of these properties is different from the others, so we drew a boxplot of the sales price distribution, and grouped it by whether or not the properties experienced class change. 
-
-The first plot on the right is the original boxplot. We observed that the group with tax class change don't have outliers with extreme high sales price, compared to the group without tax class change. The observation may be resulted from the difference between sample size, or from other reasons that we don't know yet.
-
-Due to the long tail constructed by outliers, we can barely see the inter-quartile range. Therefore, we zoomed in the original plot in the second boxplot, and found that compared to properties without tax class change, those with tax class change usually have higher sales prices. 
+The first plot on the right is the original box plot. We notice that the group with tax class change do not have as many outliers as the group without tax class changs. And among its outliers, no one has extremely high sales price. The observation may be resulted from the difference between sample size, or from other reasons that are not clear yet. Due to the long tail consisting of outliers, we can barely see the inter-quartile range. Therefore, we zoom in the original plot in the second box plot, and find that compared to properties without tax class change, those with tax class change usually have higher sales prices. 
 
 ```{r, fig.width=10, fig.height=5}
 
@@ -156,11 +326,13 @@ annotate_figure(fig_5,
 ```
 
 
-Then we tried to figure out how the number of units and square feet of property impact its sales price, so we plotted a scatter plot matrix colored by the borough for finding the correlations. 
+Then we try to figure out how the number of units and square feet of properties impact the sales price, so we use a scatter plot matrix colored by borough to find the correlations. 
 
-The result shows that the number of units, either residential units or commercial units, or both of them, does not have a significant positive correlation to the sales price. On the other hand, the sales price is related to the square feet, but only in several boroughs. In Queens and Staten, both the gross square feet and the land square feet are positively correlated to the sales price. In Brooklyn, only the land square feet is positively correlated to the sales price. The observation is actually pretty counter-intuitive, since we in general believe that sales price should be proportional to the square feet. The reason behind the low correlation values between sales price and square feet for other boroughs might be the huge difference in unit price between neighborhoods in one borough. Recall that when we research the top 20 most expensive neighborhood, most of them are from Manhattan or Brooklyn. For Bronx, since it does not have a number of expensive neighborhoods, another guess is that since Bronx has the lowest median unit price among all boroughs, and the cheapest family dwellings, the sales prices of most properties in the area are generally low regardless of the square feet.
+The result shows that the number of units, either residential units or commercial units, or the sum of them, does not have a significant correlation to the sales price. On the other hand, the sales price is related to the square feet, but only in several boroughs. In Queens and Staten, both the gross square feet and the land square feet are positively correlated to the sales price. In Brooklyn, only the land square feet is positively correlated to the sales price. The observation is actually pretty counter-intuitive since we generally believe that sales price should be proportional to the square feet. The reason behind the low correlation values between the sales price and the square feet for other boroughs might be the vast difference in unit price between neighborhoods in the same borough. Recall that when we research the top 20 most expensive neighborhoods, there is a huge difference in unit price between those neighborhoods, and most of them are from Manhattan or Brooklyn. On the other hand, while the Bronx does not have expensive neighborhoods, it has the lowest median unit price among all boroughs and the cheapest family dwellings. Therefore, most properties' sales price in the area may be generally low regardless of the square feet.
 
 ```{r fig.height=14, fig.width=14, message=FALSE, warning=FALSE}
+#figure 6
+
 fig_6 = ggpairs(dat, columns = c(7:11,15),
                    mapping= aes(colour = factor(`BOROUGH`, 
                                                 labels =
@@ -181,22 +353,24 @@ print(fig_6, progress=FALSE)
 
 **Section 5.2. COVID-19 and property sales in NYC**
 
-We observe that both the sales count and the sales amount of 2020 are in general lower compared to those of the year 2019 despite both of them starts off higher in 2020 when the COVID-19 barely began to spread in NYC(shown in figure 7(a)). As COVID-19 cases surge from the middle of March, we observe an evident decrease in both sales count and sales amount. And although later trends are not as obvious as the sudden drop in mid March, the sales count display an opposite trend compared to the COVID-19 cases trend. Such an assocaition is also observed with sales amount but even less obvious. 
+We observe that both the sales count and the sales amount of 2020 are in general lower compared to those of the year 2019, although both of them start off higher in 2020 when the COVID-19 barely began to spread in NYC (shown in figure 7(a)). As COVID-19 cases surge from the middle of March, we observe an evident decrease in both sales count and sales amount. Although later trends are not as obvious as the sudden drop in mid-March, the sales count display an opposite trend compared to the trend of the COVID-19 cases. Such an association is also observed with the sales amount but even less obvious. 
 
 ```{r,fig.width=16, fig.height=18}
-#figure 7(part1) the time series plot 
+#figure 7 (part1) the time series plot 
 #plot contrast with 2019 same time 
 
 covid = read.csv('data/data-by-day.csv', stringsAsFactors = FALSE)%>%
   dplyr::select(date_of_interest, CASE_COUNT)%>%
   dplyr::mutate(date_of_interest = as.Date(strptime(date_of_interest, format="%m/%d/%Y")))%>%
   inner_join(dat_2020_summary, by= c('date_of_interest' = 'SALE DATE'))
+
 fig7a = ggplot(data = covid,aes(x= date_of_interest, y = CASE_COUNT))+
   geom_line(color = "#CC6666",size=1.5)+
   scale_x_date(date_labels = '%m-%d')+
   ylab('Count') + xlab('Date')+
-  ggtitle('Daily COVID-19 count')+
+  ggtitle('Daily COVID-19 Count')+
   theme_regular+theme(axis.title.x = element_blank())
+
 fig7b = dat_2019_summary%>%
   inner_join(dat_2020_summary, by = c('pure_date' = 'pure_date'))%>%
   select(`SALE DATE.y`, count_2019, count)%>%
@@ -210,8 +384,9 @@ fig7b = dat_2019_summary%>%
   scale_color_manual(values=c("#9999CC","#CC6666"))+
   scale_x_date(date_labels = '%m-%d')+
   xlab('Date')+ylab('Count')+
-  ggtitle('Daily sales count')+
+  ggtitle('Daily Sales Count')+
   theme_regular+theme(axis.title.x = element_blank())
+
 fig7c = dat_2019_summary%>%
   inner_join(dat_2020_summary, by = c('pure_date' = 'pure_date'))%>%
   select(`SALE DATE.y`, avg_2019, avg)%>%
@@ -225,7 +400,7 @@ fig7c = dat_2019_summary%>%
   scale_color_manual(values=c("#9999CC","#CC6666"))+
   scale_x_date(date_labels = '%m-%d')+
   xlab('Date')+ylab('Amount(USD)')+
-  ggtitle('Daily sales amount')+
+  ggtitle('Daily Sales Amount')+
   theme_regular
 fig7_1 = ggarrange(fig7a, fig7b, fig7c,nrow = 3)
 annotate_figure(fig7_1,
@@ -235,20 +410,20 @@ annotate_figure(fig7_1,
 ```
 
 
-```{r, fig.width=12, fig.height = 6,echo = FALSE}
+```{r, fig.width=15, fig.height = 6,echo = FALSE}
 fig7e = covid%>%
   ggplot(aes(x= CASE_COUNT, y = avg))+
     geom_point(color = "#CC6666",size = 3)+
     geom_density_2d(color = "#9999CC")+
     xlab('COVID-19 case count') + ylab('Sales amount')+
-    ggtitle('Sales amount vs. COVID-19 case count')+
+    ggtitle('Sales Amount vs. COVID-19 Case Count')+
     theme_regular
 fig7d = covid%>%
   ggplot(aes(x = CASE_COUNT, y = count))+
   geom_point(color = "#CC6666",size = 3)+
   geom_density_2d(color ="#9999CC")+
-  xlab('COVID-19 case count') + ylab('Count')+
-  ggtitle('Sales count vs. COVID-19 case count')+
+  xlab('COVID-19 case count') + ylab('Sales count')+
+  ggtitle('Sales Count vs. COVID-19 Case Count')+
   theme_regular
 fig7_2 = ggarrange(fig7d, fig7e)
 annotate_figure(fig7_2,
@@ -257,17 +432,16 @@ annotate_figure(fig7_2,
 #cor.test(covid$CASE_COUNT, covid$count,method = 'pearson')
 #cor.test(covid$CASE_COUNT, covid$avg,method = 'pearson')
 ```
-From figure 7(b), we observe that most days fewer than 1,000 COVID-19 cases(to be specific, out of the 203 days in the record, 147 days have lower or equal to 1,000 COVID-19 cases). Most days with relatively fewer COVID-19 cases(below 1,000 cases) have between 50 to 100 property sales. The sales count for days with relatively fewer COVID-19 cases are more widely spread compared to those days with more cases. Also, we observe a weak negative assocaition between COVID-19 case counts and sales count as days with more cases tend to have lower property transactions counts.
-In terms of sales amount, it is quite stable across days with different COVID-19 cases counts; although we do observe taht several days with relatively fewer COVID-19 cases have extremly high sales amount campared to other days,which is not observed during days with much more cases. 
 
-A Pearson correlation test suggests a statistical significant negative correlation(-0.15) between COVID-19 case count and property sales count(p-value of 0.03<0.05). However, the correlation between COVID-19 case count and sales amount is not statistical significant according to the Pearson correlation test.Such findings corraobates our observations in the times series plot. 
+From figure 7(b), we observe that most days have fewer than 1,000 COVID-19 cases. To be more specific, 147 out of the 203 days in the record have lower or equal to 1,000 COVID-19 cases. Most days with relatively fewer COVID-19 cases (below 1,000) have between 50 to 100 cases of property sales. The sales count dots for days with relatively fewer COVID-19 cases are more widely spread on the sales count axis. Also, we observe a weak negative association between the daily COVID-19 case count and daily sales count as the days with more cases tend to have lower property transaction counts.
+
+In terms of sales amount, it is quite stable across days with different COVID-19 case counts. However, we notice that several days with relatively fewer COVID-19 cases have extremely high total sales amount, which does not happen during days with much more cases. 
+
+A Pearson correlation test suggests a statistically significant negative correlation(-0.15) between COVID-19 case count and property sales count (p-value of 0.03<0.05). However, the correlation between the COVID-19 case count and the sales amount is not statistically significant, according to the Pearson correlation test. Such findings corroborate our observations in the times series plot. 
 
 
 ```{r,include = FALSE}
 #fig 8 (a)
-library('tmap')
-library('tmaptools')
-library(sf)
 #load in nyc shape file 
 nyc_zip_boundary = st_read('data/ZIP_CODE_040114.shp')
 #covid map 
@@ -287,7 +461,9 @@ theme_bare <- theme(
 dat[which(dat$`ZIP CODE`==10034),]%>%select(`BUILDING CLASS CATEGORY`, `LAND SQUARE FEET`, `GROSS SQUARE FEET`, unit_price)%>%arrange(desc(unit_price))
 ```
 
-Figure 8(a) shows COVID-19 case rate per 100,000 people and property sales by record where the top ten zipcodes are highlighted. Zipcodes with top ten highest sales counts are located in Queens, Brooklyn, Bronx and Staten Island. And in general these zipcodes are on the side of their boroughs that are further from Manhattan. Indeed we can observe a pattern that zipcodes further from Manhattan in general have higher sales count. Zipcodes with the highest median uint sales price are mostly located in Manhattan, with the exception of 11249 in Brooklyn and 10034 in Bronx. The zipcode with the highest median unit sales price is 10105 in Manhattan; its median unit price is 8915.551 USD per square feet, while all other zipcodes have median unit price below 2,000 USD per square feet. In fact, there is only one transaction of commercial vacant land in 10105 which has a extreme high unit price. On the other hand, the fact that 10034 in Bronx being the third most expensive zipcode is quite suprising, based on our previous findings. A closer examination of the zipcode shows that there are only 4 property transactions in 10034 and there are two property sales(one commericial garages and religious facilities) with very high unit price and thus drove up the median unit price. As for sales amount, zipcodes with high sales amount can be divided into two groups. The first group is mostly price driven(such as 10017,10018 in Manhattan) where typically properties in these zipcodes tend to have high unit prices but but the sales count of these zipcodes are fairly low. The second group is quantity driven(such as 11234 and 11236 in Queens); these zipcodes have lower unit prices but they have fairly large sales count. 
+Figure 8(a) shows the COVID-19 case rate per 100,000 people and the property sales by record where the top 10 zip codes are highlighted. The zip codes with the top 10 highest sales counts are located in Queens, Brooklyn, the Bronx, and Staten Island. And in general, these zip codes are on the side of their boroughs that are further from Manhattan. Indeed,  we can observe a pattern that the zip codes further from Manhattan generally have higher sales count. 
+
+The zip codes with a high median unit sales price are mostly located in Manhattan, with the exception of 11249 in Brooklyn and 10034 in the Bronx. The zip code with the highest median unit sales price is 10105 in Manhattan; its median unit price is 8915.551 USD per square foot, while all other zip codes have a median unit price below 2,000 USD per square foot. In fact, there is only one transaction of the commercial vacant land in 10105, which has an extremely high unit price. On the other hand, the fact that 10034 in the Bronx being the third most expensive zip code is quite surprising, considering our previous findings. A closer examination of the zip code shows that there are only four property transactions in 10034, and two of them (the transactions of a commercial garage and a religious facility) have very high unit prices and thus drive up the median unit price. As for sales amount, zip codes with a high sales amount can be divided into two groups. The first group is mostly price-driven, such as 10017 and 10018 in Manhattan. Typically, properties in these zip codes tend to have high unit prices but low sales count. The second group is quantity driven, such as 11234 and 11236 in Queens; these zipcodes have lower unit prices but fairly large sales count.
 
 
 ```{r,fig.width=24, fig.height=24}
@@ -304,7 +480,7 @@ map1 = nyc_zip_boundary%>%
   ggplot()+
   geom_sf(aes(fill = COVID_CASE_RATE))+
   scale_fill_gradient(high = "#e34a33", low = "#fee8c8", guide = "colorbar")+
-  ggtitle('Covid-19 case rate(per 100,000 population) by zipcode')+
+  ggtitle('Covid-19 case rate (per 100,000 population) by zipcode')+
   labs(fill = 'Case rate')+
   theme_bare+
   ggrepel::geom_label_repel(
@@ -388,7 +564,7 @@ map4 = nyc_zip_boundary%>%
     ggtitle('Median unit price by zipcode')
 fig8_1= ggarrange(map1, map2, map3, map4, nrow = 2, ncol = 2)
 annotate_figure(fig8_1,
-               bottom = text_grob('Figure 8(a):COVID-19 rate and property sales by zipcode', 
+               bottom = text_grob('Figure 8(a): COVID-19 rate and property sales by zipcode', 
                                   hjust = 0.5, face = "italic", size = 35))
 ```
 
@@ -428,15 +604,16 @@ fig8c = zipcode_dat%>%
   theme_regular
 fig8_2= ggarrange(fig8a, fig8b, fig8c, nrow = 1, ncol = 3)
 annotate_figure(fig8_2,
-                top = text_grob('COVID-19 case rate(per 10,000 population) vs. ',hjust =0.5, face = 'bold', size = 20 ), 
+                top = text_grob('COVID-19 Case Rate (per 10,000 population) vs. ',hjust =0.5, face = 'bold', size = 20 ), 
                bottom = text_grob('Figure 8(b):Association between property sales and COVID-19 case rate(out of 100,000) by zipcode', hjust = 0.5, face = "italic", size = 20))
 #cor.test(zipcode_dat$COVID_CASE_RATE, zipcode_dat$count,method = 'pearson')
 #cor.test(zipcode_dat$COVID_CASE_RATE, zipcode_dat$amount,method = 'pearson')
 #cor.test(zipcode_dat$COVID_CASE_RATE, zipcode_dat$median_unit,method = 'pearson')
 ```
-Figure 8(b) has a clearer display of the association between COVID-19 case rate and property sales by zipcode. According to Figure 8(b), most zipcodes have COVID-19 cases rate between 2,000 to 6,000(out of 100,000). We observe a positive association between COVID-19 cases rate and property sales counts in the scatterplot of Figure 8(b). According to the Pearson correlation test, the COVID-19 case rate of a zipcode is positively associatied with the sales count within that zipcode; the correlation between the two is 0.5021585 and such association is statistical significant(p-value < 2.2e-16).On the other hand, the Pearson correlation test suggests a statistical significant mild negative assocaition (correlation -0.43 and p-value 8.392e-10) between COVID-19 case rate and median unit price; such an negative assocaition can also be observed from the scatterplot. The correlation between COVID-19 case rate and sales amount is not statistical significant. 
 
-In a word, zipcodes with higher COVID-19 case rate tend to have higher sales count but lower median unit sales price. Related to the real word situation, such a pattern might indicates an area of lower economic level. However, it is too early to draw any conclusion like that during the phase of exploratory analyis and therefore further analysis is required.
+Figure 8(b) presents a clearer display of the association between COVID-19 case rate and property sales by zip code. According to Figure 8(b), most zip codes have COVID-19 case rates between 2,000 to 6,000 (out of 100,000). Also, we observe a positive association between the COVID-19 case rate and the property sales count in the scatter plot of Figure 8(b). According to the Pearson correlation test, the COVID-19 case rate of a zip code is positively associated with the sales count within that zip code; the correlation between the two is 0.5021585. Such association is statistically significant (p-value < 2.2e-16). On the other hand, the Pearson correlation test suggests a statistically significant mild negative association (correlation -0.43 and p-value 8.392e-10) between COVID-19 case rate and median unit price; such a negative association can also be observed from the scatter plot. The correlation between COVID-19 case rate and sales amount is not statistically significant. 
+
+In a word, zip codes with higher COVID-19 case rates tend to have higher sales count but lower median unit sales price. Such a pattern, related to the real-world situation, might indicate an area with weaker economic performance. However, it is too early to draw any conclusion like that during the phase of exploratory analysis, and further study is required.
 
 
 

@@ -7,3 +7,4 @@ site: bookdown::bookdown_site
 
 # Introduction
 
+New York City (NYC) has been famous for its diversity, energy, and ample opportunities for decades. However, the advantages that one could enjoy in this city are not free. According to the study of The Economist, NYC is the 7th most expensive city in 2020. One of the major parts contributing to this ranking is the extremely high real estate price. We hope that in our study, by performing data visualization on NYC's property sales records in the past 12 months, we could get a better and more in-depth understanding of the trend of the property sales market in NYC. Specifically, we focus on how geographical features, sold date, and property size and type affect the prices. Furthermore, due to the pandemic, 2020 become an incredibly different and hard year for New York, one of the earliest major U.S. cities shut down due to COVID-19. Therefore, we will also look into how COVID-19 influenced the property market in NYC.
