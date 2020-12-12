@@ -364,14 +364,14 @@ covid = read.csv('data/data-by-day.csv', stringsAsFactors = FALSE)%>%
   dplyr::mutate(date_of_interest = as.Date(strptime(date_of_interest, format="%m/%d/%Y")))%>%
   inner_join(dat_2020_summary, by= c('date_of_interest' = 'SALE DATE'))
 
-fig7a = ggplot(data = covid,aes(x= date_of_interest, y = CASE_COUNT))+
+fig8a = ggplot(data = covid,aes(x= date_of_interest, y = CASE_COUNT))+
   geom_line(color = "#CC6666",size=1.5)+
   scale_x_date(date_labels = '%m-%d')+
   ylab('Count') + xlab('Date')+
   ggtitle('Daily COVID-19 Count')+
   theme_regular+theme(axis.title.x = element_blank())
 
-fig7b = dat_2019_summary%>%
+fig8b = dat_2019_summary%>%
   inner_join(dat_2020_summary, by = c('pure_date' = 'pure_date'))%>%
   select(`SALE DATE.y`, count_2019, count)%>%
   inner_join(covid%>%select(date_of_interest), by = c('SALE DATE.y' = 'date_of_interest'))%>%
@@ -387,7 +387,7 @@ fig7b = dat_2019_summary%>%
   ggtitle('Daily Sales Count')+
   theme_regular+theme(axis.title.x = element_blank())
 
-fig7c = dat_2019_summary%>%
+fig8c = dat_2019_summary%>%
   inner_join(dat_2020_summary, by = c('pure_date' = 'pure_date'))%>%
   select(`SALE DATE.y`, avg_2019, avg)%>%
   inner_join(covid%>%select(date_of_interest), by = c('SALE DATE.y' = 'date_of_interest'))%>%
@@ -402,38 +402,38 @@ fig7c = dat_2019_summary%>%
   xlab('Date')+ylab('Amount(USD)')+
   ggtitle('Daily Sales Amount')+
   theme_regular
-fig7_1 = ggarrange(fig7a, fig7b, fig7c,nrow = 3)
-annotate_figure(fig7_1,
+fig8_1 = ggarrange(fig8a, fig8b, fig8c,nrow = 3)
+annotate_figure(fig8_1,
                bottom = text_grob(
-                 'Figure 7(a):Daily COVID-19 cases count(top);daily sales count(middle);daily sales amount(bottom)', 
+                 'Figure 8(a):Daily COVID-19 cases count(top);daily sales count(middle);daily sales amount(bottom)', 
                  hjust = 0.5, face = "italic", size = 20))
 ```
 
 
 ```{r, fig.width=15, fig.height = 6,echo = FALSE}
-fig7e = covid%>%
+fig8e = covid%>%
   ggplot(aes(x= CASE_COUNT, y = avg))+
     geom_point(color = "#CC6666",size = 3)+
     geom_density_2d(color = "#9999CC")+
     xlab('COVID-19 case count') + ylab('Sales amount')+
     ggtitle('Sales Amount vs. COVID-19 Case Count')+
     theme_regular
-fig7d = covid%>%
+fig8d = covid%>%
   ggplot(aes(x = CASE_COUNT, y = count))+
   geom_point(color = "#CC6666",size = 3)+
   geom_density_2d(color ="#9999CC")+
   xlab('COVID-19 case count') + ylab('Sales count')+
   ggtitle('Sales Count vs. COVID-19 Case Count')+
   theme_regular
-fig7_2 = ggarrange(fig7d, fig7e)
-annotate_figure(fig7_2,
-               bottom = text_grob('Figure 7(b):Association between property sales and COVID-19 case count',
+fig8_2 = ggarrange(fig8d, fig8e)
+annotate_figure(fig8_2,
+               bottom = text_grob('Figure 8(b):Association between property sales and COVID-19 case count',
                                   hjust = 0.5, face = "italic", size = 16))
 #cor.test(covid$CASE_COUNT, covid$count,method = 'pearson')
 #cor.test(covid$CASE_COUNT, covid$avg,method = 'pearson')
 ```
 
-From figure 7(b), we observe that most days have fewer than 1,000 COVID-19 cases. To be more specific, 147 out of the 203 days in the record have lower or equal to 1,000 COVID-19 cases. Most days with relatively fewer COVID-19 cases (below 1,000) have between 50 to 100 cases of property sales. The sales count dots for days with relatively fewer COVID-19 cases are more widely spread on the sales count axis. Also, we observe a weak negative association between the daily COVID-19 case count and daily sales count as the days with more cases tend to have lower property transaction counts.
+From figure 8(b), we observe that most days have fewer than 1,000 COVID-19 cases. To be more specific, 147 out of the 203 days in the record have lower or equal to 1,000 COVID-19 cases. Most days with relatively fewer COVID-19 cases (below 1,000) have between 50 to 100 cases of property sales. The sales count dots for days with relatively fewer COVID-19 cases are more widely spread on the sales count axis. Also, we observe a weak negative association between the daily COVID-19 case count and daily sales count as the days with more cases tend to have lower property transaction counts.
 
 In terms of sales amount, it is quite stable across days with different COVID-19 case counts. However, we notice that several days with relatively fewer COVID-19 cases have extremely high total sales amount, which does not happen during days with much more cases. 
 
@@ -441,7 +441,7 @@ A Pearson correlation test suggests a statistically significant negative correla
 
 
 ```{r,include = FALSE}
-#fig 8 (a)
+#fig 9 (a)
 #load in nyc shape file 
 nyc_zip_boundary = st_read('data/ZIP_CODE_040114.shp')
 #covid map 
@@ -562,9 +562,9 @@ map4 = nyc_zip_boundary%>%
     colour = "magenta",
     segment.colour = "magenta")+
     ggtitle('Median unit price by zipcode')
-fig8_1= ggarrange(map1, map2, map3, map4, nrow = 2, ncol = 2)
-annotate_figure(fig8_1,
-               bottom = text_grob('Figure 8(a): COVID-19 rate and property sales by zipcode', 
+fig9_1= ggarrange(map1, map2, map3, map4, nrow = 2, ncol = 2)
+annotate_figure(fig9_1,
+               bottom = text_grob('Figure 9(a): COVID-19 rate and property sales by zipcode', 
                                   hjust = 0.5, face = "italic", size = 35))
 ```
 
@@ -581,37 +581,37 @@ zipcode_dat = data.frame(nyc_zip_boundary)%>%
   left_join(nyc_zipcode_count)%>%
   mutate(amount = coalesce(amount, 0))%>%
   mutate(count = coalesce(count, 0))
-fig8a = zipcode_dat%>%
+fig9a = zipcode_dat%>%
   ggplot(aes(x = COVID_CASE_RATE, y = count))+
   geom_point(color = "#CC6666",size = 3)+
   geom_density_2d(color ="#9999CC")+
   xlab('COVID-19 case rate') + ylab('Count')+
   ggtitle('Sales count')+
   theme_regular
-fig8b = zipcode_dat%>%
+fig9b = zipcode_dat%>%
   ggplot(aes(x = COVID_CASE_RATE, y = amount))+
   geom_point(color = "#CC6666",size = 3)+
   geom_density_2d(color ="#9999CC")+
   xlab('COVID-19 case rate') + ylab('Amount(USD)')+
   ggtitle('Sales amount')+
   theme_regular
-fig8c = zipcode_dat%>%
+fig9c = zipcode_dat%>%
   ggplot(aes(x = COVID_CASE_RATE, y = median_unit))+
   geom_point(color = "#CC6666",size = 3)+
   geom_density_2d(color ="#9999CC")+
   xlab('COVID-19 case rate') + ylab('Median unit price')+
   ggtitle('Median unit sales price')+
   theme_regular
-fig8_2= ggarrange(fig8a, fig8b, fig8c, nrow = 1, ncol = 3)
+fig9_2= ggarrange(fig9a, fig9b, fig9c, nrow = 1, ncol = 3)
 annotate_figure(fig8_2,
                 top = text_grob('COVID-19 Case Rate (per 10,000 population) vs. ',hjust =0.5, face = 'bold', size = 20 ), 
-               bottom = text_grob('Figure 8(b):Association between property sales and COVID-19 case rate(out of 100,000) by zipcode', hjust = 0.5, face = "italic", size = 20))
+               bottom = text_grob('Figure 9(b):Association between property sales and COVID-19 case rate(out of 100,000) by zipcode', hjust = 0.5, face = "italic", size = 20))
 #cor.test(zipcode_dat$COVID_CASE_RATE, zipcode_dat$count,method = 'pearson')
 #cor.test(zipcode_dat$COVID_CASE_RATE, zipcode_dat$amount,method = 'pearson')
 #cor.test(zipcode_dat$COVID_CASE_RATE, zipcode_dat$median_unit,method = 'pearson')
 ```
 
-Figure 8(b) presents a clearer display of the association between COVID-19 case rate and property sales by zip code. According to Figure 8(b), most zip codes have COVID-19 case rates between 2,000 to 6,000 (out of 100,000). Also, we observe a positive association between the COVID-19 case rate and the property sales count in the scatter plot of Figure 8(b). According to the Pearson correlation test, the COVID-19 case rate of a zip code is positively associated with the sales count within that zip code; the correlation between the two is 0.5021585. Such association is statistically significant (p-value < 2.2e-16). On the other hand, the Pearson correlation test suggests a statistically significant mild negative association (correlation -0.43 and p-value 8.392e-10) between COVID-19 case rate and median unit price; such a negative association can also be observed from the scatter plot. The correlation between COVID-19 case rate and sales amount is not statistically significant. 
+Figure 9(b) presents a clearer display of the association between COVID-19 case rate and property sales by zip code. According to Figure 8(b), most zip codes have COVID-19 case rates between 2,000 to 6,000 (out of 100,000). Also, we observe a positive association between the COVID-19 case rate and the property sales count in the scatter plot of Figure 8(b). According to the Pearson correlation test, the COVID-19 case rate of a zip code is positively associated with the sales count within that zip code; the correlation between the two is 0.5021585. Such association is statistically significant (p-value < 2.2e-16). On the other hand, the Pearson correlation test suggests a statistically significant mild negative association (correlation -0.43 and p-value 8.392e-10) between COVID-19 case rate and median unit price; such a negative association can also be observed from the scatter plot. The correlation between COVID-19 case rate and sales amount is not statistically significant. 
 
 In a word, zip codes with higher COVID-19 case rates tend to have higher sales count but lower median unit sales price. Such a pattern, related to the real-world situation, might indicate an area with weaker economic performance. However, it is too early to draw any conclusion like that during the phase of exploratory analysis, and further study is required.
 
