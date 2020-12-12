@@ -1,2 +1,3 @@
 # Conclusion
 
+In terms of the relationship between COVID-19 and the property sales market in NYC, compared to the the property sales of the same period in 2019, we observe in general a drop in both sales count and sales amount. A significant negative association was discovered between daily COVID-19 cases and daily sales count. Furthermore, zipcodes with higher COVID-19 case rates tend to have higher sales count but lower median unit sales price; however, future work are still needed to explore the reasons behind such association.
