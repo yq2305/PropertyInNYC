@@ -569,7 +569,6 @@ annotate_figure(fig8_1,
                bottom = text_grob('Figure 9(a): COVID-19 rate and property sales by zipcode', 
                                   hjust = 0.5, face = "italic", size = 18))
 
-max(nyc_zipcode_amount$amount)
 ```
 
 
