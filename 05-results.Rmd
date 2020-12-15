@@ -449,7 +449,8 @@ theme_bare <- theme(
   plot.title = element_text(hjust = 0.5,size = 25, face = 'bold'),
   legend.position="top",
   legend.title = element_text(size = 16),
-  legend.text=element_text(size=6),
+  legend.text=element_text(size=10),
+  legend.key.width = unit(1, "cm"),
   axis.line = element_blank(), 
   axis.text.x = element_blank(), 
   axis.text.y = element_blank(),
@@ -466,7 +467,7 @@ Figure 9(a) shows the COVID-19 case rate per 100,000 people and the property sal
 The zip codes with a high median unit sales price are mostly located in Manhattan, with the exception of 11249 in Brooklyn and 10034 in the Bronx. The zip code with the highest median unit sales price is 10105 in Manhattan; its median unit price is 8915.551 USD per square foot, while all other zip codes have a median unit price below 2,000 USD per square foot. In fact, there is only one transaction of the commercial vacant land in 10105, which has an extremely high unit price. On the other hand, the fact that 10034 in the Bronx being the third most expensive zip code is quite surprising, considering our previous findings. A closer examination of the zip code shows that there are only four property transactions in 10034, and two of them (the transactions of a commercial garage and a religious facility) have very high unit prices and thus drive up the median unit price. As for sales amount, zip codes with a high sales amount can be divided into two groups. The first group is mostly price-driven, such as 10017 and 10018 in Manhattan. Typically, properties in these zip codes tend to have high unit prices but low sales count. The second group is quantity driven, such as 11234 and 11236 in Queens; these zip codes have lower unit prices but fairly large sales count.
 
 
-```{r,fig.width=24, fig.height=24}
+```{r,fig.width=16, fig.height=16}
 #covid 
 zipcode_transform = read.csv('data/ZCTA-to-MODZCTA.csv')
 covid_zipcode_count = read.csv('data/data-by-modzcta.csv')%>%
@@ -480,8 +481,8 @@ map1 = nyc_zip_boundary%>%
   ggplot()+
   geom_sf(aes(fill = COVID_CASE_RATE))+
   scale_fill_gradient(high = "#e34a33", low = "#fee8c8", guide = "colorbar")+
-  ggtitle('Covid-19 case rate (per 100,000 population) by zipcode')+
-  labs(fill = 'Case rate')+
+  ggtitle('Covid-19 case rate by zipcode')+
+  labs(fill = 'Case rate (per 100,000 population)')+
   theme_bare+
   ggrepel::geom_label_repel(
     data = nyc_zip_boundary%>%left_join(covid_zipcode_count, by = c('ZIPCODE' = 'ZCTA'))%>%
@@ -527,8 +528,9 @@ map3= nyc_zip_boundary%>%
   ggplot()+
   geom_sf(aes(fill = amount))+
   #geom_sf_text(aes(label = ZIPCODE), colour = "white")
-  scale_fill_gradient(high = "#e34a33", low = "#fee8c8", guide = "colorbar")+
-  theme_bare+labs(fill = 'Total sales amount')+
+  scale_fill_gradient(high = "#e34a33", low = "#fee8c8", guide = "colorbar", breaks = seq(500000000,2000000000,500000000),
+labels = c(500, 1000, 1500,2000 ))+
+  theme_bare+labs(fill = 'Total sales amount (millions)')+
     ggtitle('Sales amount by zipcode')+
   ggrepel::geom_label_repel(
     data = nyc_zip_boundary%>%left_join(nyc_zipcode_amount, by = c('ZIPCODE' = 'ZIP CODE'))%>%
@@ -565,7 +567,9 @@ map4 = nyc_zip_boundary%>%
 fig8_1= ggarrange(map1, map2, map3, map4, nrow = 2, ncol = 2)
 annotate_figure(fig8_1,
                bottom = text_grob('Figure 9(a): COVID-19 rate and property sales by zipcode', 
-                                  hjust = 0.5, face = "italic", size = 35))
+                                  hjust = 0.5, face = "italic", size = 18))
+
+max(nyc_zipcode_amount$amount)
 ```
 
 
