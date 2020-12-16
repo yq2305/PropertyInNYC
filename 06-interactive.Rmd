@@ -3,9 +3,6 @@
 When producing figure 9(a) in the previous section, we noticed the difficulty in recognizing the position of the neighborhood a zip code refers to. Therefore, we re-draw the map as an interactive component in this chapter. By hovering over each district on the map, you can see its corresponding zip code, sales count, median unit price, and total sales in the past year. We hope that when readers are viewing the result and conclusion of the project, this map could provide an overall picture of the data and serve as a helpful reference.
 
 Ideally, the map should also have multiple coloring options (by sales count/total sales/...), but we could not realize such a feature. The current map is colored by the median unit price of each zip code. 
-
-  <meta charset="utf-8">
-  <title>NYC Property sales Map</title>
   <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.css" />
   <style>
     #map {
