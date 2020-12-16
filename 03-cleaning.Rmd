@@ -18,10 +18,10 @@ By such an exclusion, we reduced a large amount of skewness of the data as the n
 
 
 ```{r, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 ```
 
-```{r,echo = FALSE}
+```{r, echo = FALSE}
 library(tidyverse)
 library(readxl)
 library(dplyr)
@@ -59,7 +59,7 @@ dat = bind_rows(
 ```
 
 
-```{r,echo = FALSE}
+```{r fig1, echo=FALSE}
 theme_regular = theme_light()+
         theme(plot.title =element_text(hjust = 0.5,size = 20,face = "bold"),
         legend.title = element_blank(),legend.position = 'top',legend.text = element_text(size = 16),
