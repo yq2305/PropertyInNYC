@@ -140,36 +140,8 @@
 <script src="https://d3js.org/d3.v6.js"></script>
 <script type="text/javascript" src="data/data_processed.geojson"></script>
 <script type="text/javascript" >
-    // var sales = L.marker([0,0], {opacity: 0})
-    // var total = L.marker([0,0], {opacity: 0})
-    // var mid = L.marker([0,0], {opacity: 0})
-    //var d = JSON.parse(salesdata)
-    function loadJSON(callback) {   
-      var xobj = new XMLHttpRequest();
-          xobj.overrideMimeType("application/json");
-      xobj.open('GET', 'data/sales.json', true); // Replace 'my_data' with the path to your file
-      xobj.onreadystatechange = function () {
-            if (xobj.readyState == 4 && xobj.status == "200") {
-              // Required use of an anonymous callback as .open will NOT return a value but simply returns undefined in asynchronous mode
-              callback(xobj.responseText);
-            }
-      };
-      xobj.send(null);  
-    }
-
-    function init() {
-     loadJSON(function(response) {
-      // Parse JSON string into object
-        var sales = JSON.parse(response);
-        return sales
-     });
-    }
-    var salesdata = init()
-    console.log(salesdata)
-
     var map = L.map('map', {
       zoomControl: false,
-      // layers: [sales, total, mid]
     }).setView([40.7587, -73.96305], 12);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -188,30 +160,28 @@
 
     info.update = function(props) {
       if (props !== undefined) {
-        var name = props.PO_NAME
+        var name = props.borough
         var postalCode = props.postalCode;
         var sales = props.count
-        var total = props.amount
+        var total = (props.amount/1000000).toFixed(3)
         var mid = props.median_unit
       }
 
       this._div.innerHTML = '<h4>NYC Poperty Sales Data</h4>' +  (props ?
         '<b>' + name + '</b><br />' + 'Zipcode: '+postalCode 
-        +'</b><br />' + 'Sales Count: ' + sales +'</b><br />' + 'Median unit price: '+ mid +'</b><br />' + 'Total Sales: '+ total
+        +'</b><br />' + 'Sales: ' + sales +'</b><br />' + 'Median price($): '+ mid +'</b><br />' + 'Total(MM): '+ total
         : 'Select a borough <br> and Hover over a Zipcode');
     };
 
     info.addTo(map);
-
-    var overlays = {};
-
-    L.control.layers({},overlays).addTo(map);
+    L.control.layers().addTo(map);
+    const overlay = d3.select(map.getPanes().overlayPane)
+    const projection = d3.geoTransform()
+    const pathCreator = d3.geoPath().projection(projection)
 
     var zoom = L.control.zoom({position: 'topright'});
     zoom.addTo(map);
-    
     var popup = L.popup();
-
     function getColor(p) {
       return p > 8000  ? '#67000d' :
              p > 2000  ? '#ef3b2c' :
@@ -233,6 +203,7 @@
       };
     }
 
+
     function highlightFeature(e) {
       var layer = e.target;
       layer.setStyle({
@@ -246,10 +217,10 @@
       }
       info.update(layer.feature.properties);
     }
-    var geojson;
+    var d3map;
 
     function resetHighlight(e) {
-      geojson.resetStyle(e.target);
+      d3map.resetStyle(e.target);
       info.update();
     }
 
@@ -265,7 +236,7 @@
       });
     }
 
-    geojson = L.geoJson(nycdata, {
+    d3map = L.geoJson(nycdata, {
       style: style, 
       onEachFeature: onEachFeature
     }).addTo(map);
@@ -273,10 +244,9 @@
     var legend = L.control({position: 'bottomleft'});
 
     legend.onAdd = function (map) {
-
       var div = L.DomUtil.create('div', 'info legend'),
         grades = [0, 100, 200, 500, 1000, 2000, 10000],
-        labels = ["median unit price"],
+        labels = ["median price"],
         from, to;
 
       for (var i = 0; i < grades.length; i++) {
@@ -294,13 +264,12 @@
 
     legend.addTo(map);
 
-    // Handle overlay events
     map.on({
       overlayadd: function(e) {
-        geojson.setStyle(style);
+        d3map.setStyle(style);
       },
       overlayremove: function(e) {
-        geojson.setStyle(style);
+        d3map.setStyle(style);
       }
     });
 
