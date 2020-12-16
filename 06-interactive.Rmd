@@ -24,7 +24,7 @@ The current map is colored by the median unit price of each zip code. Ideally, t
 
     .legend {
       text-align: left;
-      line-height: 18px;
+      line-height: 20px;
       color: #555;
     }
     .legend i {
@@ -146,7 +146,7 @@ The current map is colored by the median unit price of each zip code. Ideally, t
     legend.onAdd = function (map) {
       var div = L.DomUtil.create('div', 'info legend'),
         grades = [0, 100, 200, 500, 1000, 2000, 10000],
-        labels = ["median price"],
+        labels = ["median price per sqft"],
         from, to;
 
       for (var i = 0; i < grades.length; i++) {
