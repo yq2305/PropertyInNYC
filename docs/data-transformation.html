@@ -24,7 +24,7 @@
 <meta name="author" content="Guotian Zhu, Yuxin Qian, Zhiheng Jiang, Jiayi Pan" />
 
 
-<meta name="date" content="2020-12-11" />
+<meta name="date" content="2020-12-14" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -107,9 +107,10 @@
 <li><p>Compared to the sales price of a property, unit price (price per square foot) is a more objective reflection of a property’s price level as it is not influenced by the area of a property. Therefore, we define unit price of a property as the sales price divided by the gross square feet of the property (which is an industry convention), and when gross square feet is 0, we substitute it with the land square feet.</p></li>
 </ol>
 <p>Within the property sales data set, which contains 35873 records, there are 15178 sales records with sales price 0. Such transactions indicate the transfer of ownership without a cash consideration. They are not included in the study since our interest lies in the commercial aspect of the property sales market. Furthermore, we extended the idea to those records with abnormal low sales prices. Although those transactions do involve a cash flow, they do not indicate typical commercial property tradings and should also be excluded.</p>
-<p>Therefore, we decided to set a threshold and ignore all records with a sales price lower than that. The distribution of the sales price after excluding all transactions with price 0 is shown in the following figure. We observe that the distribution displayed on a log scale is strongly left-skewed; most of the transactions have a sales price higher than one million dollars. While the minimum sales price is below ten dollars, and the maximum is close to a billion. Eventually, we decided to exclude records with a sales price below 10,000.</p>
+<p>Therefore, we decided to set a threshold and ignore all records with a sales price lower than that. The distribution of the sales price after excluding all transactions with price 0 is shown in the following figure. We use log scale in the x-axis to eliminate the long tail caused by several records with extremely high sales, so that the distribution of most records could be seen clearer.</p>
+<p>We observe that the distribution displayed on a log scale is strongly left-skewed; most of the transactions have a sales price higher than one million dollars. While the minimum sales price is below ten dollars, and the maximum is close to a billion. Eventually, we decided to exclude records with a sales price below 10,000.</p>
 <p>By such an exclusion, we reduced a large amount of skewness of the data as the number of figures of the sales price from the rest of the records are approximately symmetric with a mean of seven figures. Hence, 10,000 seems like a reasonable threshold. Specifically, beyond the 15,178 records with sales price 0, there are 838 sales records with a sales price between 1(inclusive) and 10,000. We regarded those 16016 records as unhelpful transactions and ignored them in our further analysis.</p>
-<p><img src="finalproj_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<p><img src="finalproj_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
 <p>We preprocessed the property sales data for 2019 in the same fashion as we processed our Rolling sales data. However, although we have full-year sales data for 2019, we only included records from 2019-03-01 to 2019-10-31 for comparison purposes. We hoped to compare to the same period in 2020 and learn how COVID-19 might have influenced NYC’s property sales market. Recall that COVID-19 related data for NYC are available starting from 2020-02-29, and the rolling sales data only contains records until 2020-10-31.</p>
 
 </div>

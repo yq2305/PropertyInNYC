@@ -1,9 +1,4 @@
-# Interactive component
-
-When producing figure 9(a) in the previous section, we noticed the difficulty in recognizing the position of the neighborhood a zip code refers to. Therefore, we re-draw the map as an interactive component in this chapter. By hovering over each district on the map, you can see its corresponding zip code, sales count, median unit price, and total sales in the past year. We hope that when readers are viewing the result and conclusion of the project, this map could provide an overall picture of the data and serve as a helpful reference.
-
-Ideally, the map should also have multiple coloring options (by sales count/total sales/...), but we could not realize such a feature. The current map is colored by the median unit price of each zip code. 
-
+<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
@@ -38,6 +33,7 @@ Ideally, the map should also have multiple coloring options (by sales count/tota
       margin-right: 8px;
       opacity: 0.7;
     }
+
   </style>
 </head>
 <body>
@@ -103,7 +99,7 @@ Ideally, the map should also have multiple coloring options (by sales count/tota
 
       this._div.innerHTML = '<h4>NYC Poperty Sales Data</h4>' +  (props ?
         '<b>' + name + '</b><br />' + 'Zipcode: '+postalCode 
-        +'</b><br />' + 'Sales Count: ' + sales +'</b><br />' + 'Median unit price: '+ mid +'</b><br />' + 'Total Sales: '+ total
+        +'</b><br />' + 'Sales: ' + sales +'</b><br />' + 'Median price: '+ mid +'</b><br />' + 'Total Sales: '+ total
         : 'Select a borough <br> and Hover over a Zipcode');
     };
 
@@ -182,7 +178,7 @@ Ideally, the map should also have multiple coloring options (by sales count/tota
 
       var div = L.DomUtil.create('div', 'info legend'),
         grades = [0, 100, 200, 500, 1000, 2000, 10000],
-        labels = ["median unit price"],
+        labels = ["median price"],
         from, to;
 
       for (var i = 0; i < grades.length; i++) {
