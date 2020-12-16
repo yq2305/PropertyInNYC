@@ -24,7 +24,7 @@
 <meta name="author" content="Guotian Zhu, Yuxin Qian, Zhiheng Jiang, Jiayi Pan" />
 
 
-<meta name="date" content="2020-12-15" />
+<meta name="date" content="2020-12-16" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -100,8 +100,8 @@
             <section class="normal" id="section-">
 <div id="interactive-component" class="section level1">
 <h1><span class="header-section-number">Chapter 6</span> Interactive component</h1>
-<p>When producing figure 9(a) in the previous section, we noticed the difficulty in recognizing the position of the neighborhood a zip code refers to. Therefore, we re-draw the map as an interactive component in this chapter. By hovering over each district on the map, you can see its corresponding zip code, sales count, median unit price, and total sales in the past year. We hope that when readers are viewing the result and conclusion of the project, this map could provide an overall picture of the data and serve as a helpful reference.</p>
-<p>The current map is colored by the median unit price of each zip code. Ideally, the map should have multiple coloring options, but we were not able realize such a feature.</p>
+<p>When producing figure 9(a) in the previous section, we noticed the difficulty in recognizing the position of the neighborhood a zip code refers to. Therefore, we re-draw the map as an interactive component in this chapter. By hovering over each district on the map, you can see its corresponding borough, zip code, sales count, median unit price, and total sales in the past year. We hope that when readers are viewing the result and conclusion of the project, this map could provide an overall picture of the data and serve as a helpful reference.</p>
+<p>The current map is colored by the median unit price of each zip code. Ideally, the map should have multiple coloring options, but unfortunately, we were not able realize such a feature.</p>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.6.4/leaflet.css" />
 <style>
     #map {
@@ -126,11 +126,11 @@
       color: #555;
     }
     .legend i {
-      width: 18px;
-      height: 18px;
+      width: 20px;
+      height: 20px;
       float: left;
-      margin-right: 8px;
-      opacity: 0.7;
+      margin-right: 6px;
+      opacity: 0.8;
     }
   </style>
 <div id="map">
@@ -149,7 +149,7 @@
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
 
-    // control that shows state info on hover
+    //show info
     var info = L.control({position: 'topleft'});
 
     info.onAdd = function (map) {
@@ -168,9 +168,9 @@
       }
 
       this._div.innerHTML = '<h4>NYC Poperty Sales Data</h4>' +  (props ?
-        '<b>' + name + '</b><br />' + 'Zipcode: '+postalCode 
-        +'</b><br />' + 'Sales: ' + sales +'</b><br />' + 'Median price($): '+ mid +'</b><br />' + 'Total(MM): '+ total
-        : 'Select a borough <br> and Hover over a Zipcode');
+        '<b>' + name + '</b><br />' + 'Zip code: '+postalCode 
+        +'</b><br />' + 'Sales count: ' + sales +'</b><br />' + 'Median price per sqft($): '+ mid +'</b><br />' + 'Total sales(MM): '+ total
+        : 'Select a district <br> or hover over a zip code');
     };
 
     info.addTo(map);
@@ -272,7 +272,6 @@
         d3map.setStyle(style);
       }
     });
-
   </script>
 
 </div>

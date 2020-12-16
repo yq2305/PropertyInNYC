@@ -1,8 +1,8 @@
 # Interactive component
 
-When producing figure 9(a) in the previous section, we noticed the difficulty in recognizing the position of the neighborhood a zip code refers to. Therefore, we re-draw the map as an interactive component in this chapter. By hovering over each district on the map, you can see its corresponding zip code, sales count, median unit price, and total sales in the past year. We hope that when readers are viewing the result and conclusion of the project, this map could provide an overall picture of the data and serve as a helpful reference.
+When producing figure 9(a) in the previous section, we noticed the difficulty in recognizing the position of the neighborhood a zip code refers to. Therefore, we re-draw the map as an interactive component in this chapter. By hovering over each district on the map, you can see its corresponding borough, zip code, sales count, median unit price, and total sales in the past year. We hope that when readers are viewing the result and conclusion of the project, this map could provide an overall picture of the data and serve as a helpful reference.
 
-The current map is colored by the median unit price of each zip code. Ideally, the map should have multiple coloring options, but we were not able realize such a feature. 
+The current map is colored by the median unit price of each zip code. Ideally, the map should have multiple coloring options, but unfortunately, we were not able realize such a feature. 
 
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.6.4/leaflet.css" />
   <style>
@@ -68,9 +68,9 @@ The current map is colored by the median unit price of each zip code. Ideally, t
       }
 
       this._div.innerHTML = '<h4>NYC Poperty Sales Data</h4>' +  (props ?
-        '<b>' + name + '</b><br />' + 'Zipcode: '+postalCode 
-        +'</b><br />' + 'Sales: ' + sales +'</b><br />' + 'Median price($): '+ mid +'</b><br />' + 'Total(MM): '+ total
-        : 'Select a borough <br> and Hover over a Zipcode');
+        '<b>' + name + '</b><br />' + 'Zip code: '+postalCode 
+        +'</b><br />' + 'Sales count: ' + sales +'</b><br />' + 'Median price per sqft($): '+ mid +'</b><br />' + 'Total sales(MM): '+ total
+        : 'Select a district <br> or hover over a zip code');
     };
 
     info.addTo(map);

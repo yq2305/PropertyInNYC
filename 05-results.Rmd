@@ -102,7 +102,7 @@ colScale <- scale_colour_manual(name = "grp",values = myColors)
 
 **Section 5.1. Property sales evolution and distribution in NYC**
 
-We first take a look at the property sales by borough. In the upper left plot in figure 2, we observe that Queens and Brooklyn have the highest property sales in the past 12 months, while Manhattan is the borough with significantly lower property sales. However, in terms of total sales amount (accumulated sale prices in each borough), Manhattan reaches the highest amount of total sales with the least sales count. Although Queens has a higher sales count than Brooklyn, it has less total sales amount (upper right in figure 2). While we inspect the unit price, which is the price per square feet of each property, Manhattan has the highest median unit price in all five boroughs, and Brooklyn has a higher median unit price than Queens. This observation is consistent with our inspection of the upper two plots. Also, we noticed that the Bronx has the lowest median unit price among all 5 boroughs.
+We first take a look at the property sales by borough. In the upper left plot in figure 2, we observe that Queens and Brooklyn have the highest property sales in the past 12 months, while Manhattan is the borough with significantly lower property sales. However, in terms of total sales amount (accumulated sale prices in each borough), Manhattan reaches the highest amount of total sales with the least sales count. Although Queens has a higher sales count than Brooklyn, it has less total sales amount (upper right in figure 2). While we inspect the unit price, which is the price per square foot of each property, Manhattan has the highest median unit price in all five boroughs, and Brooklyn has a higher median unit price than Queens. This observation is consistent with our inspection of the upper two plots. Also, we noticed that the Bronx has the lowest median unit price among all five boroughs.
 
 
 
@@ -145,7 +145,7 @@ annotate_figure(fig_1,
                bottom = text_grob('Figure 2: Sales by borough', hjust = 0.5, face = "italic", size = 27))
 ```
 
-Next, we inspect the time series for the sale amount, total sale, and median unit sale price in the past year for each borough separately. From the daily sales amount, we observe that the Bronx, Brooklyn, Queens, and Staten Island share a similar trend, while Brooklyn and Queens are almost identical in their magnitudes of each day's sales. For Manhattan, the general sales amount is low, but there are three peaks, one in January, one in March, and one in November. Moving forward to the time series of daily sales amount, we observe that the sales amount per day is consistent with several peaks for all boroughs. For median unit price per day, we notice that Manhattan has higher statistics than other boroughs, which matches with the intuition.
+Next, we inspect the time series for the sale amount, total sale, and median unit sale price in the past year for each borough separately. From the daily sales amount, we observe that the Bronx, Brooklyn, Queens, and Staten Island share a similar trend, while Brooklyn and Queens are almost identical in their magnitudes of each day's sales. For Manhattan, the general sales amount is low, but there are three peaks, one in January, one in March, and one in November. Moving forward to the time series of daily sales amount, we observe that the sales amount per day is consistent with several peaks for all boroughs. For the median unit price per day, we notice that Manhattan has higher statistics than other boroughs, which matches with the intuition.
 
 
 ```{r fig3, fig.height=9, fig.width=20}
@@ -199,7 +199,7 @@ annotate_figure(fig_2,
                bottom = text_grob('Figure 3: Times series of sales by borough', hjust = 0.5, face = "italic", size = 27))
 ```
 
-Then, we use a Cleveland dot plot to visualize the top 20 most popular neighborhoods in terms of sales count, and the top 20 most expensive neighborhoods in terms of the median unit price. From the first plot, we observe the neighborhoods from Queens and Brooklyn dominate the top 20 most popular ones, with two exceptions of Great Kills from Staten Island at 4th place and Baychester from the Bronx at 16th place. In the ranking of the most expensive neighborhoods, neighborhoods from Manhattan and Brooklyn share all top 20.
+Then, we use a Cleveland dot plot to visualize the top 20 most popular neighborhoods in terms of sales count and the top 20 most expensive neighborhoods in terms of the median unit price. From the first plot, we observe the neighborhoods from Queens and Brooklyn dominate the top 20 most popular ones, with two exceptions of Great Kills from Staten Island at 4th place and Baychester from the Bronx at 16th place. In the ranking of the most expensive neighborhoods, neighborhoods from Manhattan and Brooklyn share all top 20.
 
 ```{r fig4, fig.height=12, fig.width=12}
 #figure 3
@@ -277,11 +277,11 @@ annotate_figure(fig_4,
 
 ```
 
-When we look at the percentage of properties that has the tax or building class changed after sales, we observe from the left plot that around 10% of properties experienced tax class change after sales and few of them experienced building class change. 
+When we look at the percentage of properties that have the tax or building class changed after-sales, we observe from the left plot that around 10% of properties experienced tax class change after-sales and few of them experienced building class change. 
 
-Then we draw a box plot of the sales price distribution, and grouped it by whether or not the properties experienced class change to see if the sales price of the properties in one group is different from those in the other.
+Then we draw a box plot of the sales price distribution and grouped it by whether or not the properties experienced class change to see if the sales price of the properties in one group is different from those in the other.
 
-The first plot on the right is the original box plot. We notice that the group with tax class change do not have as many outliers as the group without tax class changs. And among its outliers, no one has extremely high sales price. The observation may be resulted from the difference between sample size, or from other reasons that are not clear yet. Due to the long tail consisting of outliers, we can barely see the inter-quartile range. Therefore, we zoom in the original plot in the second box plot, and find that compared to properties without tax class change, those with tax class change usually have higher sales prices. 
+The first plot on the right is the original box plot. We notice that the group with tax class change does not have as many outliers as the group without tax class change. And among its outliers, no one has an extremely high sales price. The observation may be resulted from the difference between sample size, or from other reasons that are not clear yet. Due to the long tail consisting of outliers, we can barely see the inter-quartile range. Therefore, we zoom in the original plot in the second box plot, and find that compared to properties without tax class change, those with tax class change usually have higher sales prices. 
 
 ```{r fig6, fig.height=8, fig.width=16}
 
@@ -339,11 +339,11 @@ annotate_figure(fig_5,
 ```
 
 
-Then we try to figure out how the rest continuous variables, such as number of units, area, and history of a property, impact the sales price, so we use a scatter plot matrix colored by borough to find the correlations. The result shows that both the number of units and history of a property have no correlation with the sales price, so we omit them from figure 7. 
+Then we try to figure out how the rest continuous variables, such as the number of units, the area, and the history of a property, impact the sales price, so we use a scatter plot matrix colored by borough to find the correlations. The result shows that both the number of units and the history of a property have no correlation with the sales price, so we omit them from figure 7. 
 
-On the other hand, the sales price shows correlation with the square feet, but only in several boroughs. In Queens and Staten, both the gross square feet and the land square feet are positively correlated to the sales price. In Brooklyn, only the land square feet is positively correlated to the sales price.
+On the other hand, the sales price shows a correlation with the square feet, but only in several boroughs. In Queens and Staten, both the gross square feet and the land square feet are positively correlated to the sales price. In Brooklyn, only the land square feet is positively correlated to the sales price.
 
-The observation is actually pretty counter-intuitive, since we generally believe that sales price should be proportional to the square feet. The reason behind the low correlation values between the sales price and the square feet for other boroughs might be the vast difference in unit price between neighborhoods in the same borough. Recall that when we research the top 20 most expensive neighborhoods, there is a huge difference in unit price between those neighborhoods, and most of them are from Manhattan or Brooklyn. On the other hand, while the Bronx does not have expensive neighborhoods, it has the lowest median unit price among all boroughs and the cheapest family dwellings. Therefore, most properties' sales price in the area may be generally low regardless of the square feet.
+The observation is actually pretty counter-intuitive since we generally believe that sales price should be proportional to the square feet. The reason behind the low correlation values between the sales price and the square feet for other boroughs might be the vast difference in unit price between neighborhoods in the same borough. Recall that when we research the top 20 most expensive neighborhoods, there is a huge difference in unit price between those neighborhoods, and most of them are from Manhattan or Brooklyn. On the other hand, while the Bronx does not have expensive neighborhoods, it has the lowest median unit price among all boroughs and the cheapest family dwellings. Therefore, most properties' sales price in the area may be generally low regardless of the square feet.
 
 ```{r fig7, fig.height=6, fig.width=6, message=FALSE, warning=FALSE}
 #figure 6
